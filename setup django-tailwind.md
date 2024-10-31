@@ -271,4 +271,3 @@ Alternatively (and for maximum reliability), you can use a fully qualified path.
    NPM_BIN_PATH = which("npm")
    ```
 
-> *source : https://django-tailwind.readthedocs.io/en/latest/index.html*
