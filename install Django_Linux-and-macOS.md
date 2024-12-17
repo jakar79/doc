@@ -42,6 +42,8 @@ python3 -m django --version
 ```
 Once the server is running you can view the site by navigating to the following URL on your local web browser: http://127.0.0.1:8000/. You should see a site that looks like this:
 
+![Django development environment up and running](img/django_skeleton_app_homepage_django_4_0.png)
+
 # Setup Project
 
 ## Step 1: Create a Django Project
