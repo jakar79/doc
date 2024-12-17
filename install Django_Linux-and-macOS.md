@@ -1,4 +1,4 @@
-# install Django on macOS
+# install Django 
 ## Step 1: Install Python using Homebrew (Optional but Recommended)
 
 If you prefer using Homebrew to manage Python, you can install or upgrade Python with the following command:
@@ -40,8 +40,14 @@ Check the installed Django version to confirm a successful installation
 ```bash
 python3 -m django --version
 ```
-## Step 5: Create a Django Project
+Once the server is running you can view the site by navigating to the following URL on your local web browser: http://127.0.0.1:8000/. You should see a site that looks like this:
+
+# Setup Project
+
+## Step 1: Create a Django Project
+
 Create a new Django project with the following command:
+
 ```bash
 django-admin startproject yourprojectname
 ```
@@ -52,12 +58,25 @@ cd yourprojectname
 ```
 >*NB: Replace yourprojectname with the desired name for your Django project.
 
-Step 6: Run the Development Server
+## Step 2: Run the Development Server
+
 Ensure everything is set up correctly by starting the development server:
+
 ```bash
 python manage.py runserver
 ```
 
 Visit http://127.0.0.1:8000/ in your web browser to confirm the successful installation.
 
-Congratulations! You've now successfully installed Django on your macOS. You're ready to dive into the world of Django and start building your web applications with this robust and feature-rich framework.
+## Step 3: Create a Django App
+
+return to your bash and stop the server with ctl-c
+
+Use the following command to create a Django app:
+
+```bash
+python3 manage.py startapp yourappname
+```
+Once the app is created, navigate to the app directory 
+
+>*NB: Replace yourappname with the desired name for your Django app. This command will generate a new directory with the specified app name, containing the necessary files and directories.
