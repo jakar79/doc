@@ -27,7 +27,7 @@ cd path/to/your/project
 virtualenv myenv
 source myenv/bin/activate
 ```
- >*NB*: Replace ***virtualenv myenv*** commande, with ***venv myenv*** if you install  $${\color{red}python3-venv \space}$$ package.<br>
+ >*NB*: Replace ***virtualenv myenv*** commande, with ***venv myenv*** if you install $\color{rgba(255,0,0, 0.4)}{\textsf{python3-venv}}$ package.<br>
  > - Replace path/to/your/project with the actual path to your project directory.<br>
  > - Once you've finished working on your Django project, you can deactivate the virtual environment:
  >> ```bash
@@ -110,3 +110,4 @@ tests.py: Contains unit tests for the app.
 init.py: An empty file that tells Python that the directory should be considered a Python package.
 
 
+$\color{rgba(255,0,0, 0.4)}{\textsf{lorem ipsum}}$
