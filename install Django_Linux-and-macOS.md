@@ -25,7 +25,7 @@ sudo apt install python3-venv
 ```bash
 cd path/to/your/project
 virtualenv myenv
-source venv/bin/activate
+source myenv/bin/activate
 ```
  >*NB*: Replace ***virtualenv myenv*** commande, with ***venv myenv*** if you install  $${\color{red}python3-venv \space}$$ package.<br>
  > - Replace path/to/your/project with the actual path to your project directory.<br>
