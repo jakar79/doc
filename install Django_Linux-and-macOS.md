@@ -1,4 +1,4 @@
-# install Django 
+# install Django 3.x
 ## Step 1: Install Python using Homebrew (Optional but Recommended)
 
 If you prefer using Homebrew to manage Python, you can install or upgrade Python with the following command:
