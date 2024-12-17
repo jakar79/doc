@@ -28,11 +28,13 @@ virtualenv myenv
 source venv/bin/activate
 ```
  >*NB*: Replace ***virtualenv myenv*** commande, with ***venv myenv*** if you install  $${\color{red}python3-venv \space}$$ package.<br>
- >Replace path/to/your/project with the actual path to your project directory.<br>
- >NB*: Once you've finished working on your Django project, you can deactivate the virtual environment:
+ > - Replace path/to/your/project with the actual path to your project directory.<br>
+ > - Once you've finished working on your Django project, you can deactivate the virtual environment:
  >> ```bash
  >> deactivate
  >> ```
+> - *Remember to activate the virtual environment every time you work on your Django project and deactivate it when you're done. This practice will help you avoid conflicts between different projects and make your development workflow more efficient*.
+
  ## Step 4: Install Django
  
 ```bash
