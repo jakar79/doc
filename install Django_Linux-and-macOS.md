@@ -20,7 +20,7 @@ OR
 sudo apt install python3-venv
 ```
 
-## Step 3: Create a Virtual Environment##
+## Step 3: Create a Virtual Environment
 
 ```bash
 cd path/to/your/project
