@@ -109,5 +109,3 @@ tests.py: Contains unit tests for the app.
 
 init.py: An empty file that tells Python that the directory should be considered a Python package.
 
-
-$\color{rgba(255,0,0, 0.4)}{\textsf{lorem ipsum}}$
