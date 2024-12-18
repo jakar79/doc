@@ -48,8 +48,8 @@ python3 -m django --version
 Save installed requirement list in text file
 
 ```bash
-pip freeze
-pip freeze > requirements.txt
+pip3 freeze
+pip3 freeze > requirements.txt
 ```
 
 # Setup Project
@@ -134,7 +134,7 @@ Follow the prompts to enter a username, email, and password for the superuser ac
 Now that you have a superuser account, start the development server:
 
 ````bash
-python manage.py runserver
+python3 manage.py runserver
 ````
 
 Open your web browser and go to [`https://localhost:8000/admin`]( http://127.0.0.1:8000/admin/). and Log in with the superuser credentials you created.
