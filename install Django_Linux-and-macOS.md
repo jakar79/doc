@@ -45,6 +45,12 @@ Check the installed Django version to confirm a successful installation
 ```bash
 python3 -m django --version
 ```
+Save installed requirement list in text file
+
+```bash
+pip freeze
+pip freeze > requirements.txt
+```
 
 # Setup Project
 
@@ -221,3 +227,5 @@ Define the list_display attribute in your ModelAdmin class to customize the colu
 
 - Overriding Templates
 Override default templates to customize the appearance of specific admin views.
+
+
