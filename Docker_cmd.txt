@@ -1,0 +1,65 @@
+The Docker Container
+------------------------
+
+-Docker container:  This is a running sample of a docker image with an application and its dependencies. It is important to note that each container has a distinctive identification (ID) and is secluded from other containers. One thing containers share is the kernel.
+-Docker Client: This is a command-line tool the user uses to interact with the Docker daemon.
+-Docker daemon: Also known as Docker Engine. It refers to a background process that runs on the host system responsible for generating and running containers.
+-Docker registry: This is an app responsible for managing the storage and delivery of Docker container images. It can either be private or public.
+
+Installing Docker on Debian 11
+------------------------------
+1- install Docker Dependencies
+$ sudo apt-get update
+$ sudo apt -y install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+
+2-Add Docker’s official GPG key:
+$ curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+3-Add stable repository
+$ echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+
+4-Update Package Cache
+$ apt-get update
+
+5-Install Docker Engine
+$ apt-get install docker-ce docker-ce-cli containerd.io
+
+6-Check Docker Version
+$ docker –version
+
+7-Check Docker Service
+$ sudo systemctl status docker
+
+8-Test Docker
+$ docker run hello-world
+
+9-List Docker Images
+$ docker images
+
+10-Run a Ubuntu Container
+$ docker run -it ubuntu bash
+
+11-List Docker Containers
+$ docker ps -a
+
+12-Manage Docker Containers
+$ docker start <container_id>
+$ docker start 5aa62402b888
+$ docker ps
+$ docker stop <container_id>
+$ docker ps
+
+Also, you can delete the image using the following image syntax:
+$ rm <container_id>
+In this event, we are removing the container with ID 5aa62402b888 as shown below:
+$ docker rm 5aa62402b888 
+$ docker images
+
+13-Push Images to Docker Hub Repository
+$ docker login
+$ docker push <Image_name>
+
+14-Remove Docker
+$ apt-get remove docker-ce docker-ce-cli containerd.io
+$ sudo rm -rf /var/lib/docker
+$ sudo rm -rf /var/lib/containerd

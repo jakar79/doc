@@ -1,0 +1,91 @@
+Dockerize Angular Application
+------------------------------
+
+Angular is a very popular JavaScript framework for designing and developing web applications. Angular is developed and maintained by the Google team. Many organisations use Angular for their web application. How is the Angular application deployed on the cloud server?. Usually, we generate the dist files using the build command and copy the files in the dist folder to the cloud hosting(Runs under Apache or Nginx). It is just simple copy-paste work of Angular dist files to the cloud server.
+
+But how to deploy the Angular application using Docker?. This involves various steps. They are listed below.
+
+1. Create Dockerfile for the Angular application.
+
+2. Build and tag image from the Dockerfile.
+
+3. Run the Angular application as a container using the Docker run command.
+
+Dockerizing the Angular application needs two steps.
+
+1. Build Angular application and generate dist files.
+
+2. Run the dist folder files under Nginx.
+
+In this tutorial, you will learn, how to create a Docker image for your Angular application using Dockerfile. And how to deploy/run the Angular application from the Docker image. Don’t worry about the steps. I will show you how to do this in a step-by-step example.
+
+###--Create Angular Project:
+Use the following command to create an Angular application.
+
+---------------------------------
+ng new demo-app
+---------------------------------
+
+This project is created just for demonstration purposes. Skip this section if you already had an Angular project.
+
+###--Create Dockerfile:
+You can create the Dockerfile anywhere. However, create the Dockerfile inside the root of your Angular project folder.
+Create a file named Dockerfile and paste the below code.
+
+---------------------------------------------------------------------------------------------------------
+#stage 1
+FROM node:latest as node
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build --prod
+#stage 2
+FROM nginx:alpine
+COPY --from=node /app/dist/demo-app /usr/share/nginx/html
+-------------------------------------------------------------------------------------------------------
+
+If you are using your own Angular project then change the application name demo-app in the last line to your application name. Rest of the code works fine with any Angular application if you place the Dockerfile in the root of the Angular project.
+
+##--Build Docker Image:
+Use the following command to generate the Docker image for the Angular application using Dockerfile.
+
+-------------------------------------------------------------------
+docker build -t dockerhub_name/image_name:tag dockerfile_location
+#Example
+docker build -t bharathirajatut/angular-app:latest .
+-------------------------------------------------------------------
+
+Get the list of Docker images using the following command.
+
+---------------------------------
+docker ps
+---------------------------------
+
+##--Push Docker Image to Docker Hub:
+You need to push the Docker image to Docker Hub or any container registry(AWS ECR, Azure CR) if you want to deploy the application on the Cloud server.
+
+To push the Docker image to the Docker hub you need a Docker hub account. Once you created a Docker hub account, then log in to the Docker hub on your terminal.
+
+---------------------------------
+docker login
+---------------------------------
+
+Use the following command to push the Docker image to Docker Hub.
+
+-------------------------------------------------------------
+docker push bharathirajatut/angular-app:latest
+Run Docker Container:
+Run the Angular application using the following command.
+-------------------------------------------------------------
+
+docker run -d -p 80:80 bharathirajatut/angular-app:latest
+It runs on port number 80. Access the Angular application using the IP address and port number.
+
+------------------------------------
+http://ip_address:80/
+------------------------------------
+
+The Docker image created in the example is made as public. So you can directly the pull the Docker image from Docker hub and test the application. The Docker image is given below.
+-----------------------------------
+bharathirajatut/angular-app
+-----------------------------------

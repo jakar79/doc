@@ -1,0 +1,135 @@
+1-To create an environment:
+$ conda create --name myenv
+
+2-When conda asks you to proceed, type y:
+$ proceed ([y]/n)?
+
+This creates the myenv environment in /envs/. No packages will be installed in this environment.
+
+3-To create an environment with a specific version of Python:
+$ conda create -n myenv python=3.9
+
+4-To create an environment with a specific package:
+$ conda create -n myenv scipy
+OR:
+$ conda create -n myenv python
+$ conda install -n myenv scipy
+
+5-To create an environment with a specific version of a package:
+$ conda create -n myenv scipy=0.17.3
+OR:
+$ conda create -n myenv python
+$ conda install -n myenv scipy=0.17.3
+
+6-To create an environment with a specific version of Python and multiple packages:
+$ conda create -n myenv python=3.9 scipy=0.17.3 astroid babel
+
+!!!------------------------------------------------------------------------
+Install all the programs that you want in this environment at the same time.
+Installing 1 program at a time can lead to dependency conflicts.
+!!!----------------------------------------------------------------------
+
+###Creating an environment from an environment.yml fil###
+1-Create the environment from the environment.yml file:
+$ conda env create -f environment.yml
+
+2-Activate the new environment: 
+$ conda activate myenv
+
+3-Verify that the new environment was installed correctly:
+$ conda env list
+
+---------------------------------------------------------------------------
+EXAMPLE: A more complex environment file:
+
+name: stats2
+channels:
+  - javascript
+dependencies:
+  - python=3.9
+  - bokeh=2.4.2
+  - conda-forge::numpy=1.21.*
+  - nodejs=16.13.*
+  - flask
+  - pip
+  - pip:
+    - Flask-Testing
+---------------------------------------------------------------------------
+
+###Specifying a location for an environment###
+$ conda create --prefix ./envs jupyterlab=3.2 matplotlib=3.5 numpy=1.21
+$ conda activate ./envs
+---------------------------------------------------------------------------
+
+-----------------------------------------------------------------------------------------------------------------------------
+After activating an environment using its prefix, your prompt will look similar to the following:
+$ (/absolute/path/to/envs) $>
+
+This can result in long prefixes:
+$ (/Users/USER_NAME/research/data-science/PROJECT_NAME/envs) $
+
+To remove this long prefix in your shell prompt, modify the env_prompt setting in your .condarc file:
+$ conda config --set env_prompt '({name})'
+
+This will edit your .condarc file if you already have one or create a .condarc file if you do not.
+Now your command prompt will display the active environment’s generic name, which is the name of the environment's root folder:
+
+$ cd project-directory
+$ conda activate ./env
+(env) project-directory $
+------------------------------------------------------------------------------------------------------------------------------
+
+###Updating an environment###
+$ conda env update --prefix ./env --file environment.yml  --prune
+
+
+###Cloning an environment###
+Use the terminal or an Anaconda Prompt for the following steps:
+You can make an exact copy of an environment by creating a clone of it:
+$ conda create --name myclone --clone myenv
+
+To verify that the copy was made:
+$ conda info --envs
+
+
+###Building identical conda environments###
+You can use explicit specification files to build an identical conda environment on the same operating system platform, either on the same machine or on a different machine.
+
+Use the terminal or an Anaconda Prompt for the following steps:
+
+1-Run conda list --explicit to produce a spec list such as:
+
+# This file may be used to create an environment using:
+$ conda create --name <env> --file <this file>
+--------------------------------------------------------------------------
+# platform: osx-64
+@EXPLICIT
+https://repo.anaconda.com/pkgs/free/osx-64/mkl-11.3.3-0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/numpy-1.11.1-py35_0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/openssl-1.0.2h-1.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/pip-8.1.2-py35_0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/python-3.5.2-0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/readline-6.2-2.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/setuptools-25.1.6-py35_0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/sqlite-3.13.0-0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/tk-8.5.18-0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/wheel-0.29.0-py35_0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/xz-5.2.2-0.tar.bz2
+https://repo.anaconda.com/pkgs/free/osx-64/zlib-1.2.8-3.tar.bz2
+----------------------------------------------------------------------------
+2-To create this spec list as a file in the current working directory, run:
+
+$ conda list --explicit > spec-file.txt
+
+#To use the spec file to create an identical environment on the same machine or another machine:
+$ conda create --name myenv --file spec-file.txt
+#To use the spec file to install its listed packages into an existing environment:
+$ conda install --name myenv --file spec-file.txt
+
+
+
+
+
+
+
+https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html

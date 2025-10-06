@@ -1,0 +1,61 @@
+###How To Create A Django Project In Anaconda? ###
+Here are the steps that you need to follow to create a Django project in anaconda:
+
+1. Create a new environment
+
+First of all, you need to create a separate environment for Django development.  
+By default, anaconda comes up with the base environment. But creating a separate environment will be helpful to manage the projects without any package dependency confliction.   
+So, let’s create a separate environment specifically for web development projects using the Django framework.  
+Open your CMD or Anaconda Prompt and create a separate environment called djangoenv by typing in the following command.
+
+$ conda create -n djangoenv python=3.6 anaconda    
+
+I just mentioned the version of Python that I’m using as Python 3.6. If you want to use other versions of Python, you can do so.  
+The previous command may take some time to finish its execution. Once it is done, let’s go to the next step.
+2. Activate the new environment
+Activate the newly created environment by typing in the following command.
+
+$ conda activate djangoenv
+
+Now, we are inside the newly created environment. But our environment does not have Django in it. So, let’s install it.
+
+3. Install Django in the new environment
+Let’s install Django in the new environment using the following command. 
+
+$ conda install -c anaconda django 
+
+Wait till the installation completes. It may take some time to finish. That’s it. Now you can create Django projects in this separate environment.  
+Let’s try to create a sample project to check whether everything is ready. Let’s do this using the following commands.  
+
+4. Create a new Django project
+First of all, let’s start a new project called website.
+
+$ django-admin startproject website 
+
+5. Create a Django App
+A project can have multiple applications. Let’s create our first application.
+Move Into the Project Folder using $ cd <PROJECT_NAME>.
+
+$ cd first_django_app
+
+To create the app, we are going to use the manage.py file configurations in this format $ python manage.py startapp <APP_NAME>.
+
+$ python manage.py startapp django_app
+
+This operation created the django_app folder inside the first_django_app directory.
+
+6. Run the Django server
+Now, navigate to the project folder by using the cd command. Let’s run the project and see whether everything is working fine or not.
+
+$ python manage.py runserver 
+
+If you are on a Mac or Linux, use python3 manage.py runserver instead of the command given above.  
+Once you’ve done that, a URL will be generated on the command line. Now, copy the URL that is generated and paste it on a new tab in your browser.  
+That’s it. Everything is set up nicely if you can see this rocket launching up towards the sky.  
+Django project in anaconda
+Your Django environment is ready. After this, you can open Command Prompt or Anaconda Prompt whenever needed, and start doing the project just by activating the environment for Django.  
+The following command is used whenever we need to activate the Django environment.
+
+$ conda activate djangoenv 
+
+Do these steps and create stunning projects using your favorite backend web framework “Django”, without changing your Anaconda setup.  

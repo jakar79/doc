@@ -1,0 +1,36 @@
+###--Start by setting up your local environment
+Follow the next steps to install Angular on your laptop:
+
+Install a Node.js LTS version. Node.js is a JavaScript runtime environment that is needed to run a local server to run Angular. For more information on installing Node.js, see nodejs.org. You can check if you have node installed on your laptop by using node -v in your terminal:
+
+$ node -v
+v16.13.1 // your version may be different
+
+
+Install npm. Node Package Manager is a software registry that is widely used to manage packages and dependencies. To download and install npm packages, you need an npm package manager. As angular.io, we use the npm client command-line interface, which is installed with Node.js by default. You can check if you have npm installed on your laptop by using npm -v in your terminal:
+
+$ npm -v
+8.5.2 // your version may be different
+
+Install the Angular CLI. The Angular Command Line Interface (CLI) is used to create a new Angular application and perform a variety of tasks like creating components, services, and other things that we will see later. Run the following command in your terminal
+
+$ npm install -g @angular/cli
+
+Create Your First Angular App
+The easiest way to start is by using the Angular CLI that we just installed.
+
+Run the CLI command ng new from a terminal and provide the name of your application. In our case: first-app:
+
+$ ng new first-app
+
+This command will ask you for some information about features to include in the initial app i.e. routing.
+ For the moment, just accept the defaults by pressing the Enter or Return key, as suggested on angular.io.
+ 
+###--Run the application
+From a terminal, navigate to your workspace folder using cd first-app and run the application using ng serve --open.
+
+cd first-app
+ng serve --open 
+The ng serve command launches the server, watches your files, and rebuilds the app as you make changes to those files.
+
+The –open (or just -o) option automatically opens your browser to http://localhost:4200/.
