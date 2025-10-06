@@ -1,0 +1,214 @@
+How to Install Odoo on Ubuntu
+Step 1: Update Repository
+Open the terminal and update the apt repository to ensure you install the latest available program versions:
+sudo apt update
+
+Step 3: Secure the Server
+Securing your server is crucial to protect it from unauthorized access and potential attacks. Follow these steps to enhance your server’s security:
+
+Install the OpenSSH Server: This package ensures that your server can accept SSH connections, which is essential for remote management.
+sudo apt-get install openssh-server
+
+Install Fail2Ban: This tool helps protect your server from brute-force attacks by monitoring log files for failed login attempts and banning suspicious IP addresses.
+sudo apt-get install fail2ban
+
+After installation, start the Fail2Ban service and enable it to start automatically on boot.
+sudo systemctl start fail2ban
+sudo systemctl enable fail2ban
+Verify Fail2Ban Status: To ensure that Fail2Ban is running correctly, you can check its status with:
+sudo systemctl status fail2ban
+Securing your server with these steps will help protect it from common threats and unauthorized access. Once your server is secured, you can proceed with the Odoo 17 installation.
+
+Step 4: Install Packages and Libraries
+sudo apt-get install -y python3-pip
+
+sudo apt install -y build-essential wget python3-dev python3-venv python3-wheel libfreetype6-dev libxml2-dev libzip-dev libldap2-dev libsasl2-dev python3-setuptools node-less libjpeg-dev zlib1g-dev libpq-dev libxslt1-dev libldap2-dev libtiff5-dev libjpeg8-dev libopenjp2-7-dev liblcms2-dev libwebp-dev libharfbuzz-dev libfribidi-dev libxcb1-dev
+
+Install Node.js and NPM: Node.js is required for various frontend tasks, and NPM is its package manager.
+sudo apt-get install -y npm
+
+Create a Symlink for Node.js: Sometimes, Node.js is installed as nodejs but some applications expect node. Create a symlink to ensure compatibility.
+sudo ln -s /usr/bin/nodejs /usr/bin/node
+
+Install Less and Less Plugin for Clean CSS: Less is a CSS pre-processor, and the clean CSS plugin helps minify CSS files.
+sudo npm install -g less less-plugin-clean-css
+
+Install Node-Less: This package integrates Less with Node.js.
+sudo apt-get install -y node-less
+
+Step 3: Create Odoo18 User
+Running Odoo18 as a root user poses a security risk. Create a new system user, group, and home directory named Odoo18:
+
+sudo useradd -m -d /opt/odoo -U -r -s /bin/bash odo18
+The username can be different if it matches the PostgreSQL user and the configuration file information.
+
+Step 5: Set Up the Database Server
+sudo apt install postgresql postgresql-client
+
+sudo systemctl status postgresql
+
+Create a new Database User: Create a user for Odoo with permission to create databases. You’ll be prompted to enter a password for this user.
+By default, the only user is postgres. As Odoo forbids connecting as postgres, create a new PostgreSQL user.
+sudo -u postgres createuser -d -R -S $USER
+createdb $USER
+Note:
+Because the PostgreSQL user has the same name as the Unix login, it is possible to connect to the database without a password.
+
+OR 
+
+Create a Postgres user with the same name as in the previous step:
+sudo su - postgres -c "createuser -s odoo18"
+
+OR
+
+sudo su - postgres
+	createuser --createdb --username postgres --no-createrole --superuser --pwprompt odoo18
+	
+--createdb: Allows the user to create databases.
+
+--username postgres: Specifies the PostgreSQL superuser.
+
+--no-createrole: Prevents the user from creating roles.
+
+--superuser: Grants superuser privileges.
+
+--pwprompt: Prompts for a password for the new user.
+
+odoo18: The name of the new user.
+
+Exit the PostgreSQL User Session: Return to your regular user account.
+Step 6: Create a System User for Odoo18
+A dedicated system user for Odoo ensures that the application runs with the appropriate permissions and does not interfere with other system processes.
+
+Add a New System User: Create a system user with its home directory where Odoo will be installed.
+
+sudo adduser --system --home=/opt/odoo18 --group odoo18
+
+--system: Creates a system user with a lower UID.
+
+--home=/opt/odoo18: Specifies the home directory for the user.
+
+--group odoo18: Creates a group with the same name and assigns the user to it.
+
+sudo apt install wkhtmltopdf -y
+
+sudo -u odoo -s
+
+git clone git@github.com:odoo/odoo.git
+git clone git@github.com:odoo/enterprise.git
+ 
+OR
+
+git clone https://github.com/odoo/odoo.git
+git clone https://github.com/odoo/enterprise.git
+ 
+OR
+
+git clone https://www.github.com/odoo/odoo --depth 1 --branch master --single-branch
+
+For languages using a right-to-left interface (such as Arabic or Hebrew), the rtlcss package is required.
+sudo npm install -g rtlcss
+
+python3 -m venv odoo-venv
+
+source odoo-venv/bin/activate
+
+pip3 install wheel
+
+pip3 install -r odoo/requirements.txt
+
+deactivate
+
+mkdir /opt/odoo/odoo-custom-addons
+
+exit
+
+sudo nano /etc/odoo.conf
+
+[options]
+; Database operations password:
+admin_passwd = PASSWORD
+db_host = False
+db_port = False
+db_user = odoo18
+db_password = False
+addons_path = /opt/odoo/odoo/addons,/opt/odoo/odoo-custom-addons
+
+sudo nano /etc/systemd/system/odoo.service
+
+[Unit]
+Description=Odoo
+Requires=postgresql.service
+After=network.target postgresql.service
+[Service]
+Type=simple
+SyslogIdentifier=odoo
+PermissionsStartOnly=true
+User=odoo18
+Group=odoo
+ExecStart=/opt/odoo/odoo-venv/bin/python3 /opt/odoo/odoo/odoo-bin -c /etc/odoo.conf
+StandardOutput=journal+console
+[Install]
+WantedBy=multi-user.target
+
+sudo systemctl daemon-reload
+
+sudo systemctl enable --now odoo
+
+sudo systemctl status odoo
+
+sudo journalctl -u odoo
+
+
+Step 8: Enable Multiprocessing (Optional)
+Odoo works in multithreading mode by default. Change the server to multiprocessing mode before deployment to better use system resources and ensure stability.
+
+The number of CPUs helps approximate the number of workers:
+
+Maximum workers = (CPUs * 2) + 1. For 4 CPUs, the system would have a maximum of 9 workers.
+One worker serves around six concurrent users theoretically. For 24 simultaneous users, the system requires at least four workers.
+A cron worker requires one CPU.
+Therefore, a system with 4 CPUs and 24 concurrent users needs at least six workers, plus an additional cron worker.
+
+The number of workers and RAM distribution determine the total RAM Odoo needs:
+
+Total RAM = Workers * ((Light worker ratio * Light worker RAM) + (Heavy worker ratio * Heavy worker RAM))
+If there are around 80% of light workers that use 100MB RAM and 20% of heavy workers that use 1GB RAM, the calculation is:
+
+Total RAM = 7 * ((100*0.8)+(1024*0.2)) = 1993.6
+
+Copy
+Odoo requires a total of 2GB RAM. Add the information to the /etc/odoo.conf file:
+
+[options]
+limit_memory_hard = 2684354560
+limit_memory_soft = 2147483648
+limit_request = 8192
+limit_time_cpu = 600
+limit_time_real = 1200
+max_cron_threads = 1
+workers = 6
+
+Copy
+To apply the changes, restart the Odoo service:
+
+sudo systemctl restart odoo
+
+Copy
+The remaining system resources are available for the PostgreSQL database and any other services running on the system.
+
+Step 9: Change Port Number (Optional)
+By default, Odoo listens on port 8069. It is a good security practice to change the default port number.
+
+Add the following lines to the /etc/odoo.conf file to have Odoo listen only on 127.0.0.1 port 1111:
+
+xmlrpc_interface = 127.0.0.1
+netrpc_interface = 127.0.0.1
+xmlrpc_port = 1111
+Copy
+Note: See how to check open ports in Linux.
+
+Restart the Odoo service to apply the changes:
+
+sudo systemctl restart odoo
+
