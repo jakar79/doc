@@ -1,0 +1,48 @@
+1-steep----
+
+sudo fdisk -l
+sudo parted /dev/sdb
+mklabel gpt
+make primary 0Gb 350Gb
+quit(quit parted)
+sudo mkfs.xfs -b size=4096 -m reflink=1,crc=1 /dev/sdb -f
+sudo mkdir repo
+------------pwd
+sudo mount /dev/sdb /hom/name/repo
+------------df -hT
+sudo nano /etc/fstab
+/dev/sdb	/home/name/repo	xfs	default	0	0
+sudo adduser veeamUser
+pass....
+........
+
+sudo groupadd veeamGroup
+sudo usermod -a -G veeamGroup veeamUser
+-------------groups veeamUser
+sudo chown -R veeamUser:veeamGroup	/home/name/repo
+sudo chmod 700 /home/name/repo
+
+## add veeamUser to sudoers group#####
+
+sudo usermod -a -G sudo veeamUser
+## After veeam Backup COnfiguration delete VeeamUser from sudoer groupe#####
+sudo deluser veeamUser sudo
+
+groups veeamUser.
+
+2-step----
+
+backup Infra
+------Backup Repositories
+-----------Add Backup Repositories
+----------------Direct Atached Storage
+------------------Linux
+----------------------Set the name(Repo1 Harden)
+---------------------------choose server(10.0.0.130)
+---------------------------Populate
+-----------------------------choose direction(/home/name/repo)
+--------------------------------Click to Next
+------------------------------------Populate 
+------------------------------------Use fast XFS option	
+------------------------------------Make recent 7days
+

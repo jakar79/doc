@@ -1,0 +1,35 @@
+Nmap Command
+
+1- The nmap command allows scanning a system in various ways. In this we are performing a scan using the hostname as “geeksforgeeks” and IP address “172.217.27.174”, to find all open ports, services, and MAC addresses on the system. 
+$ nmap www.geeksforgeeks.org
+$ nmap 172.217.27.174
+
+$ nmap -v www.geeksforgeeks.org
+2- It is used to get more detailed information about the remote machines. 
+
+3. To scan multiple hosts  
+$ nmap 103.76.228.244 157.240.198.35 172.217.27.174
+
+4. To scan whole subnet  
+$ nmap 103.76.228.*
+
+5. To scan to detect firewall settings.  
+$ sudo nmap -sA 103.76.228.244
+
+6. To identify Hostnames  
+$ sudo nmap -sL  103.76.228.244 
+
+7. To scan from a file 
+$ nmap -iL input.txt
+
+8. To get some help 
+$ nmap -h
+
+9. Here -A indicates aggressive, it will give us extra information, like OS detection (-O), version detection, script scanning (-sC), and traceroute (–traceroute). It even provides a lot of valuable information about the host.
+$ nmap -A <Domain Name>
+
+10. Using this command we can discover the target hosting service or identify additional targets according to our needs for quickly tracing the path.
+$ nmap --trace out <Domain Name>
+
+11.  Here it will display the operating system where the domain or ip address is running, but will not display the exact operating system available on the computer. It will display only the chance of operating system available in the computer. The command will just guess the running operating system (OS) on the host.
+$ nmap -O <Domain Name>

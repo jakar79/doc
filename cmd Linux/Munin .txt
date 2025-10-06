@@ -1,0 +1,41 @@
+Munin
+Installation
+Before installing Munin on server01 apache2 will need to be installed. The default configuration is fine for running a munin server. For more information see the Apache2 Web Server guide.
+
+First, on server01 install munin. In a terminal enter:
+
+sudo apt install munin
+Now on server02 install the munin-node package:
+
+sudo apt install munin-node
+Configuration
+On server01 edit the /etc/munin/munin.conf adding the IP address for server02:
+
+## First our "normal" host.
+[server02]
+       address 172.18.100.101
+Note
+
+Replace server02 and 172.18.100.101 with the actual hostname and IP address for your server.
+
+Next, configure munin-node on server02. Edit /etc/munin/munin-node.conf to allow access by server01:
+
+allow ^172\.18\.100\.100$
+Note
+
+Replace ^172\.18\.100\.100$ with IP address for your munin server.
+
+Now restart munin-node on server02 for the changes to take effect:
+
+sudo systemctl restart munin-node.service
+Finally, in a browser go to http://server01/munin, and you should see links to nice graphs displaying information from the standard munin-plugins for disk, network, processes, and system.
+
+Note
+
+Since this is a new install it may take some time for the graphs to display anything useful.
+
+Additional Plugins
+The munin-plugins-extra package contains performance checks additional services such as DNS, DHCP, Samba, etc. To install the package, from a terminal enter:
+
+sudo apt install munin-plugins-extra
+Be sure to install the package on both the server and node machines.

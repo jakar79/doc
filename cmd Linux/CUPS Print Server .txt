@@ -1,0 +1,57 @@
+CUPS - Print Server
+The primary mechanism for Ubuntu printing and print services is the Common UNIX Printing System (CUPS). This printing system is a freely available, portable printing layer which has become the new standard for printing in most Linux distributions.
+
+CUPS manages print jobs and queues and provides network printing using the standard Internet Printing Protocol (IPP), while offering support for a very large range of printers, from dot-matrix to laser and many in between. CUPS also supports PostScript Printer Description (PPD) and auto-detection of network printers, and features a simple web-based configuration and administration tool.
+
+Installation
+To install CUPS on your Ubuntu computer, simply use sudo with the apt command and give the packages to install as the first parameter. A complete CUPS install has many package dependencies, but they may all be specified on the same command line. Enter the following at a terminal prompt to install CUPS:
+
+sudo apt install cups
+Upon authenticating with your user password, the packages should be downloaded and installed without error. Upon the conclusion of installation, the CUPS server will be started automatically.
+
+For troubleshooting purposes, you can access CUPS server errors via the error log file at: /var/log/cups/error_log. If the error log does not show enough information to troubleshoot any problems you encounter, the verbosity of the CUPS log can be increased by changing the LogLevel directive in the configuration file (discussed below) to “debug” or even “debug2”, which logs everything, from the default of “info”. If you make this change, remember to change it back once you’ve solved your problem, to prevent the log file from becoming overly large.
+
+Configuration
+The Common UNIX Printing System server’s behavior is configured through the directives contained in the file /etc/cups/cupsd.conf. The CUPS configuration file follows the same syntax as the primary configuration file for the Apache HTTP server, so users familiar with editing Apache’s configuration file should feel at ease when editing the CUPS configuration file. Some examples of settings you may wish to change initially will be presented here.
+
+Tip
+
+Prior to editing the configuration file, you should make a copy of the original file and protect it from writing, so you will have the original settings as a reference, and to reuse as necessary.
+
+Copy the /etc/cups/cupsd.conf file and protect it from writing with the following commands, issued at a terminal prompt:
+
+sudo cp /etc/cups/cupsd.conf /etc/cups/cupsd.conf.original
+sudo chmod a-w /etc/cups/cupsd.conf.original
+ServerAdmin: To configure the email address of the designated administrator of the CUPS server, simply edit the /etc/cups/cupsd.conf configuration file with your preferred text editor, and add or modify the ServerAdmin line accordingly. For example, if you are the Administrator for the CUPS server, and your e-mail address is ‘bjoy@somebigco.com’, then you would modify the ServerAdmin line to appear as such:
+
+ServerAdmin bjoy@somebigco.com
+Listen: By default on Ubuntu, the CUPS server installation listens only on the loopback interface at IP address 127.0.0.1. In order to instruct the CUPS server to listen on an actual network adapter’s IP address, you must specify either a hostname, the IP address, or optionally, an IP address/port pairing via the addition of a Listen directive. For example, if your CUPS server resides on a local network at the IP address 192.168.10.250 and you’d like to make it accessible to the other systems on this subnetwork, you would edit the /etc/cups/cupsd.conf and add a Listen directive, as such:
+
+Listen 127.0.0.1:631           # existing loopback Listen
+Listen /var/run/cups/cups.sock # existing socket Listen
+Listen 192.168.10.250:631      # Listen on the LAN interface, Port 631 (IPP)
+In the example above, you may comment out or remove the reference to the Loopback address (127.0.0.1) if you do not wish cupsd to listen on that interface, but would rather have it only listen on the Ethernet interfaces of the Local Area Network (LAN). To enable listening for all network interfaces for which a certain hostname is bound, including the Loopback, you could create a Listen entry for the hostname socrates as such:
+
+Listen socrates:631  # Listen on all interfaces for the hostname 'socrates'
+or by omitting the Listen directive and using Port instead, as in:
+
+Port 631  # Listen on port 631 on all interfaces
+For more examples of configuration directives in the CUPS server configuration file, view the associated system manual page by entering the following command at a terminal prompt:
+
+man cupsd.conf
+Note
+
+Whenever you make changes to the /etc/cups/cupsd.conf configuration file, you’ll need to restart the CUPS server by typing the following command at a terminal prompt:
+
+sudo systemctl restart cups.service
+Web Interface
+Tip
+
+CUPS can be configured and monitored using a web interface, which by default is available at http://localhost:631/admin. The web interface can be used to perform all printer management tasks.
+
+In order to perform administrative tasks via the web interface, you must either have the root account enabled on your server, or authenticate as a user in the lpadmin group. For security reasons, CUPS won’t authenticate a user that doesn’t have a password.
+
+To add a user to the lpadmin group, run at the terminal prompt:
+
+sudo usermod -aG lpadmin username
+Further documentation is available in the Documentation/Help tab of the web interface.

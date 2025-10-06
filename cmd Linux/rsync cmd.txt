@@ -1,0 +1,41 @@
+$ rsync --info=progress2 -auvz ~/Music/ /data/music/
+
+-a, --archive, archive mode, equivalent to -rlptgoD. This option tells rsync to syncs directories recursively, transfer special and block devices, preserve symbolic links, modification times, groups, ownership, and permissions.
+-z, --compress. This option forces rsync to compresses the data as it is sent to the destination machine. Use this option only if the connection to the remote machine is slow.
+-P, equivalent to --partial --progress. When this option is used, rsync shows a progress bar during the transfer and keeps the partially transferred files. It is useful when transferring large files over slow or unstable network connections.
+--delete. When this option is used, rsync deletes extraneous files from the destination location. It is useful for mirroring.
+-q, --quiet. Use this option if you want to suppress non-error messages.
+-e. This option allows you to choose a different remote shell. By default, rsync is configured to use ssh.
+
+
+Local to Local:  rsync [OPTION]... [SRC]... DEST
+Local to Remote: rsync [OPTION]... [SRC]... [USER@]HOST:DEST
+Remote to Local: rsync [OPTION]... [USER@]HOST:SRC... [DEST]
+
+
+Basic Rsync Usage #
+The most basic use case of rsync is to copy a single file from one to another local location. Here is an example:
+
+$ rsync -a /opt/filename.zip /tmp/
+
+Using rsync to Sync Data from/to a remote Machine #
+
+$ rsync -a /opt/media/ remote_user@remote_host_or_ip:/opt/media/
+
+To transfer data from a remote to a local machine, use the remote location as a source:
+
+$ rsync -a remote_user@remote_host_or_ip:/opt/media/ /opt/media/
+
+$ rsync -a -e "ssh -p 2322" /opt/media/ remote_user@remote_host_or_ip:/opt/media/
+
+When transferring large amounts of data it is recommended to run the rsync command inside a screen session or to use the -P option:
+
+rsync -a -P remote_user@remote_host_or_ip:/opt/media/ /opt/media/
+
+Exclude Files and Directories #
+
+rsync -a --exclude=node_modules --exclude=tmp /src_directory/ /dst_directory/
+
+The second option is to use the --exclude-from option and specify the files and directories you want to exclude in a file.
+
+rsync -a --exclude-from='/exclude-file.txt' /src_directory/ /dst_directory/

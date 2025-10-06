@@ -1,0 +1,282 @@
+QEMU
+QEMU is a machine emulator that can run operating systems and programs for one machine on a different machine. However, it is more often used as a virtualiser in collaboration with KVM kernel components. In that case it uses the hardware virtualisation technology to virtualise guests.
+
+Although QEMU has a command line interface and a monitor to interact with running guests, they are typically only used for development purposes. Libvirt provides an abstraction from specific versions and hypervisors and encapsulates some workarounds and best practices.
+
+Running QEMU/KVM
+While there are more user-friendly and comfortable ways, the quickest way to see some called Ubuntu moving on screen is directly running it from the netboot ISO. You can achieve this by running the following command:
+
+Warning: this is just for illustration - not generally recommended without verifying the checksums; Multipass and UVTool are much better ways to get actual guests easily.
+
+sudo qemu-system-x86_64 -enable-kvm -cdrom http://archive.ubuntu.com/ubuntu/dists/bionic-updates/main/installer-amd64/current/images/netboot/mini.iso
+You could download the ISO for faster access at runtime:
+
+qemu-img create -f qcow2 disk.qcow 5G
+As an example, you could also add a disk to it at the same time by adding -drive file=disk.qcow,format=qcow2
+
+These tools can do much more, as you’ll discover in their respective (long) manpages. They can also be made more consumable for specific use-cases and needs through a vast selection of auxiliary tools - for example virt-manager for UI-driven use through libvirt. But in general, it comes down to:
+
+qemu-system-x86_64 options image[s]
+So take a look at the manpage of QEMU, qemu-img and the QEMU documentation and see which options best suit your needs.
+
+Graphics
+Graphics for QEMU/KVM always comes in two pieces: a front end and a back end.
+
+frontend: Ccontrolled via the -vga argument, which is provided to the guest. Usually one of cirrus, std, qxl, or virtio. The default these days is qxl which strikes a good balance between guest compatibility and performance. The guest needs a driver for whichever option is selected – this is the most common reason to not use the default (e.g., on very old Windows versions).
+
+backend: Controlled via the -display argument. This is what the host uses to actually display the graphical content, which can be an application window via gtk or a vnc.
+
+In addition, one can enable the -spice back end (which can be done in addition to vnc). This can be faster and provides more authentication methods than vnc.
+
+If you want no graphical output at all, you can save some memory and CPU cycles by setting -nographic.
+
+If you run with spice or vnc you can use native vnc tools or virtualisation-focused tools like virt-viewer. You can read more about these in the libvirt section.
+
+All these options are considered basic usage of graphics, but there are also advanced options for more specific use-cases. Those cases usually differ in their ease-of-use and capability, such as:
+
+Need 3D acceleration: Use -vga virtio with a local display having a GL context -display gtk,gl=on. This will use virgil3d on the host, and guest drivers are needed (which are common in Linux since Kernels >= 4.4 but can be hard to come by for other cases). While not as fast as the next two options, the major benefit is that it can be used without additional hardware and without a proper IOMMU set up for device passthrough.
+
+Need native performance: Use PCI passthrough of additional GPUs in the system. You’ll need an IOMMU set up, and you’ll need to unbind the cards from the host before you can pass it through, like so:
+
+-device vfio-pci,host=05:00.0,bus=1,addr=00.0,multifunction=on,x-vga=on -device vfio-pci,host=05:00.1,bus=1,addr=00.1
+Need native performance, but multiple guests per card: Like with PCI passthrough, but using mediated devices to shard a card on the host into multiple devices, then passing those:
+
+-display gtk,gl=on -device vfio-pci,sysfsdev=/sys/bus/pci/devices/0000:00:02.0/4dd511f6-ec08-11e8-b839-2f163ddee3b3,display=on,rombar=0
+You can read more at kraxel on vGPU and Ubuntu GPU mdev evaluation. The sharding of the cards is driver-specific and therefore will differ per manufacturer – Intel or Nvidia.
+
+The advanced cases in particular can get pretty complex – it is recommended to use QEMU through libvirt for those cases. Libvirt will take care of all but the host kernel/BIOS tasks of such configurations. Below are the common basic actions needed for faster options (i.e., passthrough and mediated devices passthrough).
+
+The initial step for both options is the same; you want to ensure your system has its IOMMU enabled and the device to pass should be in a group of its own. Enabling the VT-d and IOMMU is usually an bios action and thereby manufacturer dependent.
+
+Preparing the input-output memory management unit (IOMMU)
+On the kernel side for the IOMMU feature there are various options you can enable/configure. In recent Ubuntu Kernels (>=5.4 => Focal or Bionic-HWE kernels) everything usually works by default, unless your hardware setup makes you need any of those tuning options.
+
+** Note **:
+The card used in all examples below e.g. when filtering for PCI IDs or assigning it is an Nvidia V100 on PCI id 41.00.0
+$ lspci | grep 3D
+41:00.0 3D controller: NVIDIA Corporation GV100GL [Tesla V100 PCIe 16GB] (rev a1)
+
+You can check your bootup kernel messages for iommu/dmar messages or even filter it for a particular pci id.
+
+# List all
+$ dmesg | grep -i -e DMAR -e IOMMU 
+[    3.509232] iommu: Default domain type: Translated
+...
+[    4.516995] pci 0000:00:01.0: Adding to iommu group 0
+...
+[    4.702729] perf/amd_iommu: Detected AMD IOMMU #0 (2 banks, 4 counters/bank).
+
+# Filtered for the installed 3D card
+dmesg | grep -i -e DMAR -e IOMMU | grep $(lspci | awk '/ 3D / {print $1}' )
+[    4.598150] pci 0000:41:00.0: Adding to iommu group 66
+If you have a particular device and want to check for its group you can do that via sysfs.
+If you have multiple cards or want the full list you can traverse the same sysfs paths for that.
+
+# Find the group for our example card
+$ find /sys/kernel/iommu_groups/ -name "*$(lspci | awk '/ 3D / {print $1}')*"
+/sys/kernel/iommu_groups/66/devices/0000:41:00.0
+# Check if there are other devices in this group
+ll /sys/kernel/iommu_groups/66/devices/
+lrwxrwxrwx 1 root root 0 Jan  3 06:57 0000:41:00.0 -> ../../../../devices/pci0000:40/0000:40:03.1/0000:41:00.0/
+Another useful tool for this stage - but not going into details here - can be virsh node*, especially virsh nodedev-list --tree and virsh nodedev-dumpxml <pcidev>
+
+** Note **
+Some older or non server boards tend to group devices in one IOMMU group which isn’t very useful as it means you’ll need to pass “all or none of them” to the same guest.
+
+Preparations for PCI and mediated devices pass-through - block host drivers
+For both you’d want to ensure the normal driver isn’t loaded. In some cases you can do that at runtime via virsh nodedev-detach <pcidevice>. Libvirt would later even do that automatically is on the passthrough configuration you have set <hostdev mode='subsystem' type='pci' managed='yes'>.
+This usually works fine e.g. for network cards, but some other devices like GPUs do not like too much to be unassigned, so there the required step usually is to block loading the drivers you do not want to be loaded. In our GPU example the nouveau driver would load and that has to be blocked. To do so you can create a modprobe blacklist.
+
+echo "blacklist nouveau" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf          
+echo "options nouveau modeset=0" | sudo tee -a /etc/modprobe.d/blacklist-nouveau.conf
+sudo update-initramfs -u                                                         
+sudo reboot                                                                      
+You can check the kernel modules loaded and available via lspci -v
+
+$ lspci -v | grep -A 10 " 3D "
+41:00.0 3D controller: NVIDIA Corporation GV100GL [Tesla V100 PCIe 16GB] (rev a1)
+...
+Kernel modules: nvidiafb, nouveau
+If the configuration did not work instead it would show:
+
+Kernel driver in use: nouveau
+Preparations for mediated devices pass-through - driver
+For PCI passthrough the above would be all preparations needed, for mediated devices one also needs to install and set up the host driver, the example here continues with our Nvidia V100 which is supported and available by Nvidia.
+There also is a Nvidia document about the same steps available about installation and configuration of vGPU on Ubuntu.
+
+Once you got the drivers from Nvidia like nvidia-vgpu-ubuntu-470_470.68_amd64.deb install them and check (as above) that that driver is loaded. The one you need to see is nvidia_vgpu_vfio:
+
+$ lsmod | grep nvidia
+nvidia_vgpu_vfio       53248  38
+nvidia              35282944  586 nvidia_vgpu_vfio
+mdev                   24576  2 vfio_mdev,nvidia_vgpu_vfio
+drm                   491520  6 drm_kms_helper,drm_vram_helper,nvidia
+Note:
+While it is working without, for full capabilities you’ll also need to configure the vgpu manager (came with above package) and a license server so that each guest can grab a license for the vGPU provided to it. Please see Nvidias documentation for the license server. While (as of Q1 2022) not officially supported on Linux, it might be worth to note that it runs quite fine in Ubuntu with sudo apt install unzip default-jre tomcat9 liblog4j2-java libslf4j-java using /var/lib/tomcat9 as the server path in the license server installer.
+Examples of those when running fine
+
+# general status
+$ systemctl status nvidia-vgpu-mgr
+     Loaded: loaded (/lib/systemd/system/nvidia-vgpu-mgr.service; enabled; vendor preset: enabled)
+     Active: active (running) since Tue 2021-09-14 07:30:19 UTC; 3min 58s ago
+    Process: 1559 ExecStart=/usr/bin/nvidia-vgpu-mgr (code=exited, status=0/SUCCESS)
+   Main PID: 1564 (nvidia-vgpu-mgr)
+      Tasks: 1 (limit: 309020)
+     Memory: 1.1M
+     CGroup: /system.slice/nvidia-vgpu-mgr.service
+             └─1564 /usr/bin/nvidia-vgpu-mgr
+
+Sep 14 07:30:19 node-watt systemd[1]: Starting NVIDIA vGPU Manager Daemon...
+Sep 14 07:30:19 node-watt systemd[1]: Started NVIDIA vGPU Manager Daemon.
+Sep 14 07:30:20 node-watt nvidia-vgpu-mgr[1564]: notice: vmiop_env_log: nvidia-vgpu-mgr daemon started
+
+# Entries when a guest gets a vGPU passed
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: (0x0): gpu-pci-id : 0x4100
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: (0x0): vgpu_type : Quadro
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: (0x0): Framebuffer: 0x1dc000000
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: (0x0): Virtual Device Id: 0x1db4:0x1252
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: (0x0): FRL Value: 60 FPS
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: ######## vGPU Manager Information: ########
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: Driver Version: 470.68
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: (0x0): vGPU supported range: (0x70001, 0xb0001)
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: (0x0): Init frame copy engine: syncing...
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: (0x0): vGPU migration enabled
+Sep 14 08:29:50 node-watt nvidia-vgpu-mgr[2866]: notice: vmiop_log: display_init inst: 0 successful
+
+# Entries when a guest grabs a license
+Sep 15 06:55:50 node-watt nvidia-vgpu-mgr[4260]: notice: vmiop_log: (0x0): vGPU license state: Unlicensed (Unrestricted)
+Sep 15 06:55:52 node-watt nvidia-vgpu-mgr[4260]: notice: vmiop_log: (0x0): vGPU license state: Licensed
+
+# In the guest the card is then fully recognized and enabled
+$ nvidia-smi -a | grep -A 2 "Licensed Product"
+    vGPU Software Licensed Product
+        Product Name                      : NVIDIA RTX Virtual Workstation
+        License Status                    : Licensed
+A mediated device is essentially partitioning of a hardware device utilizing firmware and host driver features. That brings quite some flexibility and options, in our example we can split our 16G GPU into 2x8G, 4x4G, 8x2G or 16x1G just as we need it. The following gives an example how to split it into two 8G cards for a compute profile and pass those to guests.
+Please refer to the nvidia documentation for advanced tunungs and different card profiles.
+
+The tool to list and configure those mediated devices is mdevctl. It will list the available types.
+
+$ sudo mdevctl types
+...
+  nvidia-300
+    Available instances: 0
+    Device API: vfio-pci
+    Name: GRID V100-8C
+    Description: num_heads=1, frl_config=60, framebuffer=8192M, max_resolution=4096x2160, max_instance=2
+Knowing the pci id 0000:41:00.0 and the mediated device type we want nvidia-300 we can now create those mediated devices:
+
+$ sudo mdevctl define --parent 0000:41:00.0 --type nvidia-300
+bc127e23-aaaa-4d06-a7aa-88db2dd538e0
+$ sudo mdevctl define --parent 0000:41:00.0 --type nvidia-300
+1360ce4b-2ed2-4f63-abb6-8cdb92100085
+$ sudo mdevctl start --parent 0000:41:00.0 --uuid bc127e23-aaaa-4d06-a7aa-88db2dd538e0
+$ sudo mdevctl start --parent 0000:41:00.0 --uuid 1360ce4b-2ed2-4f63-abb6-8cdb92100085
+After the above you can check the UUID of your ready mediated devices
+
+$ sudo mdevctl list -d
+bc127e23-aaaa-4d06-a7aa-88db2dd538e0 0000:41:00.0 nvidia-108 manual (active)
+1360ce4b-2ed2-4f63-abb6-8cdb92100085 0000:41:00.0 nvidia-108 manual (active)
+Those UUIDs can then be used to pass the mediated devices to the guest - which from here is rather similar to the pass through of a full PCI device.
+
+Passing through PCI or mediated devices
+After the above setup is ready one can pass through those devices, in libvirt for a PCI pass-through that looks like:
+
+    <hostdev mode='subsystem' type='pci' managed='yes'>
+      <source>
+        <address domain='0x0000' bus='0x41' slot='0x00' function='0x0'/>
+      </source>
+    </hostdev>
+And for mediated devices it is quite similar, but using the UUID.
+
+    <hostdev mode='subsystem' type='mdev' managed='no' model='vfio-pci' display='on'>
+      <source>
+        <address uuid='634fc146-50a3-4960-ac30-f09e5cedc674'/>
+      </source>
+    </hostdev>
+Those sections can either be part of the guest definition itself to be added on guest startup and freed on guest shutdown. Or they can be in a file and used by for hot-add remove if the hardware device and its drivers support it virsh attach-device.
+
+Note
+This works great on Focal, but type='none' as well as display='off' weren’t available on Bionic. If this level of control is required one would need to consider using the Ubuntu Cloud Archive or Server-Backports for a newer stack of the virtualization components.
+
+And finally it might be worth to not that while mediated devices become more common and known for vGPU handling, they are a general infrastructure also used for example for s390x vfio-ccw.
+
+Upgrading the machine type
+If you are unsure what this is, you might consider this as buying (virtual) Hardware of the same spec but a newer release date. You are encouraged in general and might want to update your machine type of an existing defined guests in particular to:
+
+to pick up latest security fixes and features
+continue using a guest created on a now unsupported release
+In general it is recommended to update machine types when upgrading qemu/kvm to a new major version. But this can likely never be an automated task as this change is guest visible. The guest devices might change in appearance, new features will be announced to the guest and so on. Linux is usually very good at tolerating such changes, but it depends so much on the setup and workload of the guest that this has to be evaluated by the owner/admin of the system. Other operating systems where known to often have severe impacts by changing the hardware. Consider a machine type change similar to replacing all devices and firmware of a physical machine to the latest revision - all considerations that apply there apply to evaluating a machine type upgrade as well.
+
+As usual with major configuration changes it is wise to back up your guest definition and disk state to be able to do a rollback just in case. There is no integrated single command to update the machine type via virsh or similar tools. It is a normal part of your machine definition. And therefore updated the same way as most others.
+
+First shutdown your machine and wait until it has reached that state.
+
+virsh shutdown <yourmachine>
+# wait
+virsh list --inactive
+# should now list your machine as "shut off"
+        
+Then edit the machine definition and find the type in the type tag at the machine attribute.
+
+virsh edit <yourmachine>
+<type arch='x86_64' machine='pc-i440fx-bionic'>hvm</type>
+        
+Change this to the value you want. If you need to check what types are available via “-M ?” Note that while providing upstream types as convenience only Ubuntu types are supported. There you can also see what the current default would be. In general it is strongly recommended that you change to newer types if possible to exploit newer features, but also to benefit of bugfixes that only apply to the newer device virtualization.
+
+kvm -M ?
+# lists machine types, e.g.
+pc-i440fx-xenial       Ubuntu 16.04 PC (i440FX + PIIX, 1996) (default)
+...
+pc-i440fx-bionic       Ubuntu 18.04 PC (i440FX + PIIX, 1996) (default)
+...
+        
+After this you can start your guest again. You can check the current machine type from guest and host depending on your needs.
+
+virsh start <yourmachine>
+# check from host, via dumping the active xml definition
+virsh dumpxml <yourmachine> | xmllint --xpath "string(//domain/os/type/@machine)" -
+# or from the guest via dmidecode (if supported)
+sudo dmidecode | grep Product -A 1
+        Product Name: Standard PC (i440FX + PIIX, 1996)
+        Version: pc-i440fx-bionic
+        
+If you keep non-live definitions around - like xml files - remember to update those as well.
+
+Note
+
+This also is documented along some more constraints and considerations at the Ubuntu Wiki
+
+QEMU usage for microvms
+QEMU became another use case being used in a container-like style providing an enhanced isolation compared to containers but being focused on initialization speed.
+
+To achieve that several components have been added:
+
+the microvm machine type
+alternative simple FW that can boot linux called qboot
+qemu build with reduced features matching these use cases called qemu-system-x86-microvm
+For example if you happen to already have a stripped down workload that has all it would execute in an initrd you would run it maybe like the following:
+
+$ sudo qemu-system-x86_64 -M ubuntu-q35 -cpu host -m 1024 -enable-kvm -serial mon:stdio -nographic -display curses -append 'console=ttyS0,115200,8n1' -kernel vmlinuz-5.4.0-21 -initrd /boot/initrd.img-5.4.0-21-workload
+
+To run the same with microvm, qboot and the minimized qemu you would do the following
+
+run it with with type microvm, so change -M to
+-M microvm
+
+use the qboot bios, add
+-bios /usr/share/qemu/bios-microvm.bin
+
+install the feature-minimized qemu-system package, do
+$ sudo apt install qemu-system-x86-microvm
+
+An invocation will now look like:
+
+$ sudo qemu-system-x86_64 -M microvm -bios /usr/share/qemu/bios-microvm.bin -cpu host -m 1024 -enable-kvm -serial mon:stdio -nographic -display curses -append ‘console=ttyS0,115200,8n1’ -kernel vmlinuz-5.4.0-21 -initrd /boot/initrd.img-5.4.0-21-workload
+
+That will have cut down the qemu, bios and virtual-hw initialization time down a lot.
+You will now - more than you already have before - spend the majority inside the guest which implies that further tuning probably has to go into that kernel and userspace initialization time.
+
+Note: For now microvm, the qboot bios and other components of this are rather new upstream and not as verified as many other parts of the virtualization stack. Therefore none of the above is the default. Further being the default would also mean many upgraders would regress finding a qemu that doesn’t have most features they are used to use. Due to that the qemu-system-x86-microvm package is intentionally a strong opt-in conflicting with the normal qemu-system-x86 package.
+
+

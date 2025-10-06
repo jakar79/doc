@@ -1,0 +1,97 @@
+Smart card authentication
+Among some of the popular uses for smart cards is the ability to control access to computer systems. To operate the owner must have the smart card and they must know the PIN to unlock the card. This provides a higher degree of security than single-factor authentication such as just using a password.
+
+The following sections describe how to enable smart card authentication on Ubuntu. They apply to Ubuntu 18.04 and 20.04.
+
+Requirements
+Software
+The following packages must be installed to obtain a smart card configuration on Ubuntu.
+
+pcscd: contains the drivers needed to communicate with the CCID smart card readers.
+opensc-pkcs11: contains the smart card drivers, such as PIV or CAC.
+libpam-pkcs11: contains the PAM module to allow X.509 certificate logins via smart cards.
+To install:
+
+$ sudo apt update
+$ sudo apt install opensc-pkcs11 libpam-pkcs11 pcscd
+Hardware
+Any PIV or CAC smart card with the corresponding reader should be sufficient. USB smart cards like Yubikey embed the reader, and work like regular PIV cards.
+
+Each smart card is expected to contain an X.509 certificate and the corresponding private key to be used for authentication.
+
+PAM configuration
+The pam_pkcs11 module allows PAM supported systems to use X.509 certificates to authenticate logins. The module relies on a PKCS#11 library, such as opensc-pkcs11 to access the smart card for the credentials it will need.
+
+When enabled, the pam_pkcs11 login process is as follows:
+
+Enter login
+Enter PIN
+Validate the X.509 certificate
+Map the certificate to a user
+Verify the login and match
+To enable that process we have to configure the pam_pkcs11 module and add the relevant certificate authorities, add pam_pkcs11 to PAM configuration and set the mapping of certificate names to logins.
+
+Configure the pam_pkcs11 module
+$ cd /etc/pam_pkcs11
+$ sudo cp /usr/share/doc/libpam-pkcs11/examples/pam_pkcs11.conf.example pkcs11.conf
+Check the module, cert_policy, and use_pkcs11_module options defined within the pkcs11_module opensc {} entry in the pam_pkcs11.conf file. The module option should contain the absolute path of the open-pkcs11.so on the system. The cert_policy option should include oscp as one of its certificate verification policies.
+
+In particular it should contain the following lines in Ubuntu 20.04.
+
+use_pkcs11_module = opensc;
+module = /usr/lib/x86_64-linux-gnu/opensc-pkcs11.so;
+cert_policy = ca,signature,oscp_on;
+Leave debug = true until everything is setup and is operating as desired.
+
+Map certificate names to login
+This PAM module allows certificates to be used for login, though our Linux system needs to know the username. The pam_pkcs11 module provides a variety of cert mappers to do this. Each cert mapper uses specific information from the certificate to map to a user on the system. The different cert mappers may even be stacked. In other words, if the first defined mapper fails to map to a user on the system, the next one will be tried, and so on until a user is found.
+
+For the purposes of this guide, we will use the pwent mapper. This mapper uses the getpwent() system call to examine the pw_name and pw_gecos fields of every user for a match to the CN name. If either matches, the pw_name is returned as the login name. Next, it matches this result to the PAM login name to determine if a match was found or not. Set pwent as the mapper in the pam_pkcs11.conf file by modifying the existing entry:
+
+use_mappers = pwent;
+Set the Certificate Authority and CRLs
+To validate the smart card certificates the pam_pkcs11 module needs to know the acceptable Certificate Authorities for signing user certificates and any available CRLs. You can add these in the following paths.
+
+Certificate Authorities: /etc/pam_pkcs11/cacerts
+CRLs: /etc/pam_pkcs11/crls
+Assuming the Certificate Authority is in ca.crt, the following example sets it up.
+
+$ sudo mkdir -p /etc/pam_pkcs11/cacerts
+$ sudo cp ca.crt /etc/pam_pkcs11/cacerts
+$ cd /etc/pam_pkcs11/cacerts
+$ sudo pkcs11_make_hash_link
+Similarly for the CRLs.
+
+Add pam_pkcs11 to PAM
+The next step includes the pam_pkcs11 module into the PAM stack. There are various ways to do this depending on your local policy. The following example enables smart card support for general authentication.
+
+Edit /etc/pam.d/common-auth to include the pam_pkcs11 module as follows.
+
+# require pkcs11 smart card login
+auth    [success=2 default=ignore]    pam_pkcs11.so
+The above configuration will require the system to perform a smart card authentication only. If a user fails to authenticate with a smart card, then the login will fail. All the PAM services in the /etc/pam.d directory that include common-auth will require the smart card authentication.
+
+Warning: A global configuration such as this requires a smart card for su and sudo authentication as well!
+
+Configure the pwent mapper
+Now that pam_pkcs11 and PAM have been configured for certificate logins, there is one more action. The pwent mapper requires the CN in the certificate to be in the /etc/passwd gecos field of the user. The CN must be extracted from the certificate on the smart card and added in passwd.
+
+$ sudo apt install gnutls-bin
+$ p11tool --list-tokens
+The command above will show all the available smart cards in the system and its associated PKCS#11 URI. Copy the URI of selected card in the following command.
+
+This command will print all certificates that can be used for authentication and their associated PKCS#11 URI.
+
+$ p11tool --login --list-certs [TOKEN-URI]
+Now, once the URI of the certificate that will be used for authentication is known, let’s extract the Common Name from the certificate. In the example we are assuming that our certificate URI is pkcs11:id=04.
+
+$ p11tool --login --export 'pkcs11:id=04' |  openssl x509 -noout -subject
+subject=CN = PIVKey BA366DFE3722C7449EC906B9274C8BAC
+The CN is ‘PIVKey BA366DFE3722C7449EC906B9274C8BAC’.
+Edit the /etc/passwd file and add this CN to the gecos field of the user the certificate belongs to.
+
+$ sudo usermod -c "PIVKey BA366DFE3722C7449EC906B9274C8BAC" foo
+The OS is now ready to do a smart card login for the user foo.
+
+SSH authentication
+See this page on SSH authentication with smart cards.

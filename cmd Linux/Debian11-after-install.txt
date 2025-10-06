@@ -1,0 +1,132 @@
+20 Essentials Things to Do After Installing Debian 11
+
+
+1. Fix CD-ROM error:
+Open Software & Updates > Other Software tab > Disable CD-ROM repositories > Close > Reload
+
+2. Add contrib and non-free repos:
+Open Software & Updates > Debian Software tab > Enable DFSG and non-DFSG compatible software > Close > Reload
+
+3. Install Drivers:
+Nvidia:
+# Install tool for hardware detection
+sudo apt install nvidia-detect
+
+# Perform the scan
+sudo nvidia-detect
+
+# Install recommended driver. It is nvidia-driver for me. Yours could be different.
+sudo apt install nvidia-driver
+
+AMD:
+sudo apt install firmware-linux firmware-linux-nonfree libdrm-amdgpu1 xserver-xorg-video-amdgpu
+sudo apt install mesa-vulkan-drivers libvulkan1 vulkan-tools vulkan-validationlayers
+
+4. Install microcode:
+Open Synaptic Package Manager > Search for microcode > Install either intel-microcode or amd-microcode depending on your CPU
+
+5. Install build-essential:
+sudo apt install build-essential dkms linux-headers-$(uname -r)
+
+6. Install restricted-extras:
+sudo apt install ttf-mscorefonts-installer rar unrar libavcodec-extra gstreamer1.0-libav gstreamer1.0-plugins-ugly gstreamer1.0-vaapi
+
+7. Microsoft Fonts Compatibility:
+sudo apt install fonts-crosextra-carlito fonts-crosextra-caladea
+
+8. Configure Swappiness:
+Decreasing swappiness value is one of the best ways to improve the performance of your system. This forces your Linux system to use RAM, instead of the hard drive. For those of you unfamiliar with Linux swap, check out our post on Linux swap.
+
+cat /proc/sys/vm/swappiness # 60 (default)
+Open /etc/sysctl.conf file as an administrator:
+sudo nano /etc/sysctl.conf
+At the end of the file, add vm.swappiness=10 which will reduce swap usage.
+
+Press CTRL + O to save changes and CTRL + X to exit the nano editor.
+
+Now reboot your system for the change to take effect.
+
+9. Speed up the Boot Time:
+# Open the GRUB config file and set GRUB_TIMEOUT to 0
+sudo nano /etc/default/grub
+
+# Update GRUB
+sudo update-grub
+
+10. Install Firewall:
+sudo apt install ufw
+sudo ufw enable
+
+11. Install BackUp Program:
+Open Software Center > Search for Timeshift > Click Install
+Upon opening the Timeshift, you’ll probably notice the Wizard button in the top
+
+right side of the app. As the name suggests, this is a user-friendly way of
+
+configuring backup.
+
+Run Wizard and follow these steps:
+
+1. Snapshot Type
+
+Select RSYNC
+2. Snapshot Location
+
+Select the disk where you would like your snapshots to be stored.
+3. Snapshot Levels
+
+You can choose how many snapshots Timeshift will perform/store on a monthly, weekly, daily, hourly and boot basis
+4. User home directories
+
+Allows you to decide which folders Timeshift will back up. You should prioritize your home directory, but depending on your space, it won’t hurt to include /root directory as well.
+
+12. Enable GNOME Extension:
+Debian uses the GNOME desktop environment as default. We can supercharge GNOME desktop by extending its functionality with GNOME Extensions. Go to GNOME Extensions website and install their browser extension first if you don’t have it already. Now you can install any GNOME Extension with a click of a button! Let’s see how that works in the next tip.(https://extensions.gnome.org/)
+
+13. Enable Tray Icons:
+Many third-party apps like Zoom, Dropbox, Skype don’t show up in the tray on the GNOME desktop. We can fix this by installing TopIcons Plus extension. Click the toggle button and that’s it!
+
+GNOME Extensions can be customized with the Extensions app.
+
+Open Extensions > Click gear icon next to TopIcons Plus > Set try horizontal alignment to right(https://extensions.gnome.org/extension/1031/topicons/)
+
+14. Install Additional Themes:
+To install themes on GNOME, we need to enable the User Themes extension which can be found in the Extensions app. Now, go to the GNOME Look(https://www.gnome-look.org/browse/) and download any theme you like.
+
+Check out our Top 5 GNOME Themes (https://averagelinuxuser.com/top-5-gnome-themes-ubuntu-20-04/)for some of the most beautiful themes on the market.
+
+Once you’ve picked your theme:
+
+Go to the Files tab
+Download the latest release (archive)
+Extract archive
+Move theme folder to ~/.themes folder (press CTRL + H to see hidden files in your home folder, create folder if you don’t have it)
+Open Tweaks
+Go to appearance and select your theme!
+Following the steps above, you can also install different icon packs, cursors, and much more to make GNOME look the way you want it!
+
+15. Add User Image:
+Open Settings > Users > Add image for your user
+
+16. Add the Minimize Button:
+Open Tweaks > Window Titlebars > Enable Minimize
+
+17. Enable Night Light:
+Open Settings > Display > Night Light tab > Turn on Night Light
+
+18. Change LibreOffice Look:
+Appearance:
+
+Open LibreOffice Writer → View → User Interface → Enable Single Toolbar & Tabbed interface
+
+Icons:
+
+Open LibreOffice Writer → Tools → Options → Icon style → Select Colibre.
+
+19. Enable Snap and FlatPak:
+Open Software Center > Search for gnome software > Select the first entry > Enable Snap and FlatPak in Add-ons section > Restart Software Center
+
+20. Extend the Battery Life:
+sudo apt install tlp
+
+

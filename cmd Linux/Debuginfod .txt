@@ -1,0 +1,48 @@
+Debuginfod
+This section describes what debuginfod is and how users can benefit from Ubuntu’s debuginfod service.
+
+What is debuginfod?
+From the project’s official page:
+
+debuginfod is a client/server […] that automatically distributes ELF/DWARF/source-code from servers to clients such as debuggers across HTTP.
+
+This means that users will be able to debug programs shipped with Ubuntu without the need to manually install the distribution’s debuginfo packages.
+
+Ubuntu maintains its own debuginfod service, which regularly indexes the debug symbols present in ddebs and other packages and serve this information over HTTPS.
+
+Currently, the service only provides DWARF information. There are plans to make it also index and serve source-code in the future.
+
+Using the service
+From Kinetic onwards, when you install GDB your system will be automatically configured to use Ubuntu’s debuginfod service. For previous Ubuntu releases, you can manually enable the service by setting the DEBUGINFOD_URLS environment variable in your shell. If you use Bash, you can do that by adding the following snippet to your ~/.bashrc:
+
+export DEBUGINFOD_URLS="https://debuginfod.ubuntu.com"
+When you run GDB, and if you have the DEBUGINFOD_URLS variable in your environment, you will be asked whether you would like to use the service. If you want to make sure that GDB always uses debuginfod, you can put the following snippet inside your ~/.gdbinit file:
+
+set debuginfod enabled on
+The debug symbol files will be downloaded on-the-fly during the debugging session, and will be saved locally inside the ~/.cache/debuginfod_client/ directory. You can safely remove this directory or any files inside it; they will be downloaded again only if and when needed.
+
+Example session with GDB
+Assuming that you have enabled the use of debuginfod in your system, here is what happens when you invoke GDB to debug a binary from an Ubuntu package:
+
+$ gdb -q program
+Reading symbols from program...
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+https://debuginfod.ubuntu.com 
+Enable debuginfod for this session? (y or [n]) 
+When you answer y to the question above, GDB will download the debug symbols for program:
+
+Enable debuginfod for this session? (y or [n]) y
+Debuginfod has been enabled.
+To make this setting permanent, add 'set debuginfod enabled on' to .gdbinit.
+Downloading 0.20 MB separate debug info for /home/ubuntu/program
+Reading symbols from /home/ubuntu/.cache/debuginfod_client/c0fbda15a807f880e9d0b2dcc635eeeb1f0f728e/debuginfo...                                                                           
+(gdb) 
+Opting out of the service
+If, for some reason, you prefer not to use the service, you can opt-out of it by unsetting the DEBUGINFOD_URLS environment variable. This can be done by putting the following snippet inside your shell’s configuration file:
+
+unset DEBUGINFOD_URLS
+You can also disable GDB’s willingness to use debuginfod by putting the following snippet inside your ~/.gdbinit:
+
+set debuginfod enabled off
+

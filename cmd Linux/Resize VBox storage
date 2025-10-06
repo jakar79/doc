@@ -1,0 +1,1 @@
+VBoxManage modifymedium "/path_to_vdi_file" --resize <megabytes>

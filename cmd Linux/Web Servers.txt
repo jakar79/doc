@@ -1,0 +1,346 @@
+Web Servers
+
+The primary function of a web server is to store, process and deliver Web pages to clients. The clients communicate with the server sending HTTP requests. Clients, mostly via Web Browsers, request for a specific resources and the server responds with the content of that resource or an error message. The response is usually a Web page such as HTML documents which may include images, style sheets, scripts, and the content in form of text.
+
+When accessing a Web Server, every HTTP request that is received is responded to with a content and a HTTP status code. HTTP status codes are three-digit codes, and are grouped into five different classes. The class of a status code can be quickly identified by its first digit:
+
+1xx : Informational - Request received, continuing process
+2xx : Success - The action was successfully received, understood, and accepted
+3xx : Redirection - Further action must be taken in order to complete the request
+4xx : Client Error - The request contains bad syntax or cannot be fulfilled
+5xx : Server Error - The server failed to fulfill an apparently valid request
+More information about status code check the RFC 2616.
+
+Implementation
+Web Servers are heavily used in the deployment of Web sites and in this scenario we can use two different implementations:
+
+Static Web Server: The content of the server’s response will be the hosted files “as-is”.
+Dynamic Web Server: Consist in a Web Server plus an extra software, usually an application server and a database. For example, to produce the Web pages you see in the Web browser, the application server might fill an HTML template with contents from a database. Due to that we say that the content of the server’s response is generated dynamically.
+
+#################################"Apache##############################################################################
+HTTPD - Apache2 Web Server
+Apache is the most commonly used Web server on Linux systems. Web servers are used to serve Web pages requested by client computers. Clients typically request and view Web pages using Web browser applications such as Firefox, Opera, Chromium, or Internet Explorer.
+
+Users enter a Uniform Resource Locator (URL) to point to a Web server by means of its Fully Qualified Domain Name (FQDN) and a path to the required resource. For example, to view the home page of the Ubuntu Web site a user will enter only the FQDN:
+
+www.ubuntu.com
+To view the community sub-page, a user will enter the FQDN followed by a path:
+
+www.ubuntu.com/community
+The most common protocol used to transfer Web pages is the Hyper Text Transfer Protocol (HTTP). Protocols such as Hyper Text Transfer Protocol over Secure Sockets Layer (HTTPS), and File Transfer Protocol (FTP), a protocol for uploading and downloading files, are also supported.
+
+Apache Web Servers are often used in combination with the MySQL database engine, the HyperText Preprocessor (PHP) scripting language, and other popular scripting languages such as Python and Perl. This configuration is termed LAMP (Linux, Apache, MySQL and Perl/Python/PHP) and forms a powerful and robust platform for the development and deployment of Web-based applications.
+
+Installation
+The Apache2 web server is available in Ubuntu Linux. To install Apache2:
+
+At a terminal prompt enter the following command:
+
+sudo apt install apache2
+Configuration
+Apache2 is configured by placing directives in plain text configuration files. These directives are separated between the following files and directories:
+
+apache2.conf: the main Apache2 configuration file. Contains settings that are global to Apache2.
+
+httpd.conf: historically the main Apache2 configuration file, named after the httpd daemon. In other distributions (or older versions of Ubuntu), the file might be present. In Ubuntu, all configuration options have been moved to apache2.conf and the below referenced directories, and this file no longer exists.
+
+conf-available: this directory contains available configuration files. All files that were previously in /etc/apache2/conf.d should be moved to /etc/apache2/conf-available.
+
+conf-enabled: holds symlinks to the files in /etc/apache2/conf-available. When a configuration file is symlinked, it will be enabled the next time apache2 is restarted.
+
+envvars: file where Apache2 environment variables are set.
+
+mods-available: this directory contains configuration files to both load modules and configure them. Not all modules will have specific configuration files, however.
+
+mods-enabled: holds symlinks to the files in /etc/apache2/mods-available. When a module configuration file is symlinked it will be enabled the next time apache2 is restarted.
+
+ports.conf: houses the directives that determine which TCP ports Apache2 is listening on.
+
+sites-available: this directory has configuration files for Apache2 Virtual Hosts. Virtual Hosts allow Apache2 to be configured for multiple sites that have separate configurations.
+
+sites-enabled: like mods-enabled, sites-enabled contains symlinks to the /etc/apache2/sites-available directory. Similarly when a configuration file in sites-available is symlinked, the site configured by it will be active once Apache2 is restarted.
+
+magic: instructions for determining MIME type based on the first few bytes of a file.
+
+In addition, other configuration files may be added using the Include directive, and wildcards can be used to include many configuration files. Any directive may be placed in any of these configuration files. Changes to the main configuration files are only recognized by Apache2 when it is started or restarted.
+
+The server also reads a file containing mime document types; the filename is set by the TypesConfig directive, typically via /etc/apache2/mods-available/mime.conf, which might also include additions and overrides, and is /etc/mime.types by default.
+
+Basic Settings
+This section explains Apache2 server essential configuration parameters. Refer to the Apache2 Documentation for more details.
+
+Apache2 ships with a virtual-host-friendly default configuration. That is, it is configured with a single default virtual host (using the VirtualHost directive) which can be modified or used as-is if you have a single site, or used as a template for additional virtual hosts if you have multiple sites. If left alone, the default virtual host will serve as your default site, or the site users will see if the URL they enter does not match the ServerName directive of any of your custom sites. To modify the default virtual host, edit the file /etc/apache2/sites-available/000-default.conf.
+
+Note
+
+The directives set for a virtual host only apply to that particular virtual host. If a directive is set server-wide and not defined within the virtual host settings, the default setting is used. For example, you can define a Webmaster email address and not define individual email addresses for each virtual host.
+
+If you wish to configure a new virtual host or site, copy that file into the same directory with a name you choose. For example:
+
+sudo cp /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/mynewsite.conf
+Edit the new file to configure the new site using some of the directives described below.
+
+The ServerAdmin directive specifies the email address to be advertised for the server’s administrator. The default value is webmaster@localhost. This should be changed to an email address that is delivered to you (if you are the server’s administrator). If your website has a problem, Apache2 will display an error message containing this email address to report the problem to. Find this directive in your site’s configuration file in /etc/apache2/sites-available.
+
+The Listen directive specifies the port, and optionally the IP address, Apache2 should listen on. If the IP address is not specified, Apache2 will listen on all IP addresses assigned to the machine it runs on. The default value for the Listen directive is 80. Change this to 127.0.0.1:80 to cause Apache2 to listen only on your loopback interface so that it will not be available to the Internet, to (for example) 81 to change the port that it listens on, or leave it as is for normal operation. This directive can be found and changed in its own file, /etc/apache2/ports.conf
+
+The ServerName directive is optional and specifies what FQDN your site should answer to. The default virtual host has no ServerName directive specified, so it will respond to all requests that do not match a ServerName directive in another virtual host. If you have just acquired the domain name mynewsite.com and wish to host it on your Ubuntu server, the value of the ServerName directive in your virtual host configuration file should be mynewsite.com. Add this directive to the new virtual host file you created earlier (/etc/apache2/sites-available/mynewsite.conf).
+
+You may also want your site to respond to www.mynewsite.com, since many users will assume the www prefix is appropriate. Use the ServerAlias directive for this. You may also use wildcards in the ServerAlias directive.
+
+For example, the following configuration will cause your site to respond to any domain request ending in .mynewsite.com.
+
+ServerAlias *.mynewsite.com
+The DocumentRoot directive specifies where Apache2 should look for the files that make up the site. The default value is /var/www/html, as specified in /etc/apache2/sites-available/000-default.conf. If desired, change this value in your site’s virtual host file, and remember to create that directory if necessary!
+
+Enable the new VirtualHost using the a2ensite utility and restart Apache2:
+
+sudo a2ensite mynewsite
+sudo systemctl restart apache2.service
+Note
+
+Be sure to replace mynewsite with a more descriptive name for the VirtualHost. One method is to name the file after the ServerName directive of the VirtualHost.
+
+Similarly, use the a2dissite utility to disable sites. This is can be useful when troubleshooting configuration problems with multiple VirtualHosts:
+
+sudo a2dissite mynewsite
+sudo systemctl restart apache2.service
+Default Settings
+This section explains configuration of the Apache2 server default settings. For example, if you add a virtual host, the settings you configure for the virtual host take precedence for that virtual host. For a directive not defined within the virtual host settings, the default value is used.
+
+The DirectoryIndex is the default page served by the server when a user requests an index of a directory by specifying a forward slash (/) at the end of the directory name.
+
+For example, when a user requests the page http://www.example.com/this_directory/, he or she will get either the DirectoryIndex page if it exists, a server-generated directory list if it does not and the Indexes option is specified, or a Permission Denied page if neither is true. The server will try to find one of the files listed in the DirectoryIndex directive and will return the first one it finds. If it does not find any of these files and if Options Indexes is set for that directory, the server will generate and return a list, in HTML format, of the subdirectories and files in the directory. The default value, found in /etc/apache2/mods-available/dir.conf is “index.html index.cgi index.pl index.php index.xhtml index.htm”. Thus, if Apache2 finds a file in a requested directory matching any of these names, the first will be displayed.
+
+The ErrorDocument directive allows you to specify a file for Apache2 to use for specific error events. For example, if a user requests a resource that does not exist, a 404 error will occur. By default, Apache2 will simply return a HTTP 404 Return code. Read /etc/apache2/conf-available/localized-error-pages.conf for detailed instructions for using ErrorDocument, including locations of example files.
+
+By default, the server writes the transfer log to the file /var/log/apache2/access.log. You can change this on a per-site basis in your virtual host configuration files with the CustomLog directive, or omit it to accept the default, specified in /etc/apache2/conf-available/other-vhosts-access-log.conf. You may also specify the file to which errors are logged, via the ErrorLog directive, whose default is /var/log/apache2/error.log. These are kept separate from the transfer logs to aid in troubleshooting problems with your Apache2 server. You may also specify the LogLevel (the default value is “warn”) and the LogFormat (see /etc/apache2/apache2.conf for the default value).
+
+Some options are specified on a per-directory basis rather than per-server. Options is one of these directives. A Directory stanza is enclosed in XML-like tags, like so:
+
+<Directory /var/www/html/mynewsite>
+...
+</Directory>
+The Options directive within a Directory stanza accepts one or more of the following values (among others), separated by spaces:
+
+ExecCGI - Allow execution of CGI scripts. CGI scripts are not executed if this option is not chosen.
+
+Caution
+
+Most files should not be executed as CGI scripts. This would be very dangerous. CGI scripts should kept in a directory separate from and outside your DocumentRoot, and only this directory should have the ExecCGI option set. This is the default, and the default location for CGI scripts is /usr/lib/cgi-bin.
+
+Includes - Allow server-side includes. Server-side includes allow an HTML file to include other files. See Apache SSI documentation (Ubuntu community) for more information.
+
+IncludesNOEXEC - Allow server-side includes, but disable the #exec and #include commands in CGI scripts.
+
+Indexes - Display a formatted list of the directory’s contents, if no DirectoryIndex (such as index.html) exists in the requested directory.
+
+Caution
+
+For security reasons, this should usually not be set, and certainly should not be set on your DocumentRoot directory. Enable this option carefully on a per-directory basis only if you are certain you want users to see the entire contents of the directory.
+
+Multiview - Support content-negotiated multiviews; this option is disabled by default for security reasons. See the Apache2 documentation on this option.
+
+SymLinksIfOwnerMatch - Only follow symbolic links if the target file or directory has the same owner as the link.
+
+apache2 Settings
+This section explains some basic apache2 daemon configuration settings.
+
+LockFile - The LockFile directive sets the path to the lockfile used when the server is compiled with either USE_FCNTL_SERIALIZED_ACCEPT or USE_FLOCK_SERIALIZED_ACCEPT. It must be stored on the local disk. It should be left to the default value unless the logs directory is located on an NFS share. If this is the case, the default value should be changed to a location on the local disk and to a directory that is readable only by root.
+
+PidFile - The PidFile directive sets the file in which the server records its process ID (pid). This file should only be readable by root. In most cases, it should be left to the default value.
+
+User - The User directive sets the userid used by the server to answer requests. This setting determines the server’s access. Any files inaccessible to this user will also be inaccessible to your website’s visitors. The default value for User is “www-data”.
+
+Warning
+
+Unless you know exactly what you are doing, do not set the User directive to root. Using root as the User will create large security holes for your Web server.
+
+Group - The Group directive is similar to the User directive. Group sets the group under which the server will answer requests. The default group is also “www-data”.
+
+Apache2 Modules
+Apache2 is a modular server. This implies that only the most basic functionality is included in the core server. Extended features are available through modules which can be loaded into Apache2. By default, a base set of modules is included in the server at compile-time. If the server is compiled to use dynamically loaded modules, then modules can be compiled separately, and added at any time using the LoadModule directive. Otherwise, Apache2 must be recompiled to add or remove modules.
+
+Ubuntu compiles Apache2 to allow the dynamic loading of modules. Configuration directives may be conditionally included on the presence of a particular module by enclosing them in an <IfModule> block.
+
+You can install additional Apache2 modules and use them with your Web server. For example, run the following command at a terminal prompt to install the Python 3 WSGI module:
+
+sudo apt install libapache2-mod-wsgi-py3
+The installation will enable the module automatically, but we can disable it with a2dismod:
+
+sudo a2dismod wsgi
+sudo systemctl restart apache2.service
+And then use the a2enmod utility to re-enable it:
+
+sudo a2enmod wsgi
+sudo systemctl restart apache2.service
+See the /etc/apache2/mods-available directory for additional modules already available on your system.
+
+HTTPS Configuration
+The mod_ssl module adds an important feature to the Apache2 server - the ability to encrypt communications. Thus, when your browser is communicating using SSL, the https:// prefix is used at the beginning of the Uniform Resource Locator (URL) in the browser navigation bar.
+
+The mod_ssl module is available in apache2-common package. Execute the following command at a terminal prompt to enable the mod_ssl module:
+
+sudo a2enmod ssl
+There is a default HTTPS configuration file in /etc/apache2/sites-available/default-ssl.conf. In order for Apache2 to provide HTTPS, a certificate and key file are also needed. The default HTTPS configuration will use a certificate and key generated by the ssl-cert package. They are good for testing, but the auto-generated certificate and key should be replaced by a certificate specific to the site or server. For information on generating a key and obtaining a certificate see Certificates.
+
+To configure Apache2 for HTTPS, enter the following:
+
+sudo a2ensite default-ssl
+Note
+
+The directories /etc/ssl/certs and /etc/ssl/private are the default locations. If you install the certificate and key in another directory make sure to change SSLCertificateFile and SSLCertificateKeyFile appropriately.
+
+With Apache2 now configured for HTTPS, restart the service to enable the new settings:
+
+sudo systemctl restart apache2.service
+Note
+
+Depending on how you obtained your certificate you may need to enter a passphrase when Apache2 starts.
+
+You can access the secure server pages by typing https://your_hostname/url/ in your browser address bar.
+
+Sharing Write Permission
+For more than one user to be able to write to the same directory it will be necessary to grant write permission to a group they share in common. The following example grants shared write permission to /var/www/html to the group “webmasters”.
+
+sudo chgrp -R webmasters /var/www/html
+sudo chmod -R g=rwX /var/www/html/
+These commands recursively set the group permission on all files and directories in /var/www/html to allow reading, writing and searching of directories. Many admins find this useful for allowing multiple users to edit files in a directory tree.
+
+Warning
+
+The apache2 daemon will run as the www-data user, which has a corresponding www-data group. These should not be granted write access to the document root, as this would mean that vulnerabilities in Apache or the applications it is serving would allow attackers to overwrite the served content.
+
+##########################LAMP###############################################################################
+LAMP Applications
+Overview
+LAMP installations (Linux + Apache + MySQL + PHP/Perl/Python) are a popular setup for Ubuntu servers. There is a plethora of Open Source applications written using the LAMP application stack. Some popular LAMP applications are Wiki’s, Content Management Systems, and Management Software such as phpMyAdmin.
+
+One advantage of LAMP is the substantial flexibility for different database, web server, and scripting languages. Popular substitutes for MySQL include PostgreSQL and SQLite. Python, Perl, and Ruby are also frequently used instead of PHP. While Nginx, Cherokee and Lighttpd can replace Apache.
+
+The fastest way to get started is to install LAMP using tasksel. Tasksel is a Debian/Ubuntu tool that installs multiple related packages as a co-ordinated “task” onto your system. To install a LAMP server:
+
+At a terminal prompt enter the following command:
+
+sudo tasksel install lamp-server
+After installing it you’ll be able to install most LAMP applications in this way:
+
+Download an archive containing the application source files.
+
+Unpack the archive, usually in a directory accessible to a web server.
+
+Depending on where the source was extracted, configure a web server to serve the files.
+
+Configure the application to connect to the database.
+
+Run a script, or browse to a page of the application, to install the database needed by the application.
+
+Once the steps above, or similar steps, are completed you are ready to begin using the application.
+
+A disadvantage of using this approach is that the application files are not placed in the file system in a standard way, which can cause confusion as to where the application is installed. Another larger disadvantage is updating the application. When a new version is released, the same process used to install the application is needed to apply updates.
+
+Fortunately, a number of LAMP applications are already packaged for Ubuntu, and are available for installation in the same way as non-LAMP applications. Depending on the application some extra configuration and setup steps may be needed, however.
+
+This section covers how to install some LAMP applications.
+
+phpMyAdmin
+phpMyAdmin is a LAMP application specifically written for administering MySQL servers. Written in PHP, and accessed through a web browser, phpMyAdmin provides a graphical interface for database administration tasks.
+
+Installation
+Before installing phpMyAdmin you will need access to a MySQL database either on the same host as that phpMyAdmin is installed on, or on a host accessible over the network. For more information see MySQL documentation. From a terminal prompt enter:
+
+sudo apt install phpmyadmin
+At the prompt choose which web server to be configured for phpMyAdmin. The rest of this section will use Apache2 for the web server.
+
+In a browser go to http://servername/phpmyadmin, replacing servername with the server’s actual hostname. At the login, page enter root for the username, or another MySQL user, if you have any setup, and enter the MySQL user’s password.
+
+Once logged in you can reset the root password if needed, create users, create/destroy databases and tables, etc.
+
+Configuration
+The configuration files for phpMyAdmin are located in /etc/phpmyadmin. The main configuration file is /etc/phpmyadmin/config.inc.php. This file contains configuration options that apply globally to phpMyAdmin.
+
+To use phpMyAdmin to administer a MySQL database hosted on another server, adjust the following in /etc/phpmyadmin/config.inc.php:
+
+$cfg['Servers'][$i]['host'] = 'db_server';
+Note
+
+Replace db_server with the actual remote database server name or IP address. Also, be sure that the phpMyAdmin host has permissions to access the remote database.
+
+Once configured, log out of phpMyAdmin and back in, and you should be accessing the new server.
+
+The config.header.inc.php and config.footer.inc.php files in /etc/phpmyadmin directory are used to add a HTML header and footer to phpMyAdmin.
+
+Another important configuration file is /etc/phpmyadmin/apache.conf, this file is symlinked to /etc/apache2/conf-available/phpmyadmin.conf, and, once enabled, is used to configure Apache2 to serve the phpMyAdmin site. The file contains directives for loading PHP, directory permissions, etc. From a terminal type:
+
+sudo ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf-available/phpmyadmin.conf
+sudo a2enconf phpmyadmin.conf
+sudo systemctl reload apache2.service
+For more information on configuring Apache2 see this documentation.
+
+References
+The phpMyAdmin documentation comes installed with the package and can be accessed from the phpMyAdmin Documentation link (a question mark with a box around it) under the phpMyAdmin logo. The official docs can also be access on the phpMyAdmin site.
+
+Another resource is the phpMyAdmin Ubuntu Wiki page.
+
+WordPress
+Wordpress is a blog tool, publishing platform and CMS implemented in PHP and licensed under the GNU GPLv2.
+
+Installation
+To install WordPress, run the following comand in the command prompt:
+
+    sudo apt install wordpress
+You should also install apache2 web server and mysql server. For installing apache2 web server, please refer to Apache2 documentation. For installing mysql server, please refer to MySQL documentation.
+
+Configuration
+For configuring your first WordPress application, configure an apache site. Open /etc/apache2/sites-available/wordpress.conf and write the following lines:
+
+        Alias /blog /usr/share/wordpress
+        <Directory /usr/share/wordpress>
+            Options FollowSymLinks
+            AllowOverride Limit Options FileInfo
+            DirectoryIndex index.php
+            Order allow,deny
+            Allow from all
+        </Directory>
+        <Directory /usr/share/wordpress/wp-content>
+            Options FollowSymLinks
+            Order allow,deny
+            Allow from all
+        </Directory>
+           
+Enable this new WordPress site
+
+    sudo a2ensite wordpress
+Once you configure the apache2 web server and make it ready for your WordPress application, you should restart it. You can run the following command to restart the apache2 web server:
+
+sudo systemctl reload apache2.service
+To facilitate multiple WordPress installations, the name of this configuration file is based on the Host header of the HTTP request. This means that you can have a configuration per VirtualHost by simply matching the hostname portion of this configuration with your Apache Virtual Host. e.g. /etc/wordpress/config-10.211.55.50.php, /etc/wordpress/config-hostalias1.php, etc. These instructions assume you can access Apache via the localhost hostname (perhaps by using an ssh tunnel) if not, replace /etc/wordpress/config-localhost.php with /etc/wordpress/config-NAME_OF_YOUR_VIRTUAL_HOST.php.
+
+Once the configuration file is written, it is up to you to choose a convention for username and password to mysql for each WordPress database instance. This documentation shows only one, localhost, example.
+
+Now configure WordPress to use a mysql database. Open /etc/wordpress/config-localhost.php file and write the following lines:
+
+<?php
+define('DB_NAME', 'wordpress');
+define('DB_USER', 'wordpress');
+define('DB_PASSWORD', 'yourpasswordhere');
+define('DB_HOST', 'localhost');
+define('WP_CONTENT_DIR', '/usr/share/wordpress/wp-content');
+?>
+Now create this mysql database. Open a temporary file with mysql commands wordpress.sql and write the following lines:
+
+CREATE DATABASE wordpress;
+CREATE USER 'wordpress'@'localhost'
+IDENTIFIED BY 'yourpasswordhere';
+GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER
+ON wordpress.*
+TO wordpress@localhost;
+FLUSH PRIVILEGES;
+Execute these commands.
+
+cat wordpress.sql | sudo mysql --defaults-extra-file=/etc/mysql/debian.cnf
+Your new WordPress can now be configured by visiting http://localhost/blog/wp-admin/install.php. (Or http://NAME_OF_YOUR_VIRTUAL_HOST/blog/wp-admin/install.php if your server has no GUI and you are completing WordPress configuration via a web browser running on another computer.) Fill out the Site Title, username, password, and E-mail and click Install WordPress.
+
+Note the generated password (if applicable) and click the login password. Your WordPress is now ready for use.
+
+

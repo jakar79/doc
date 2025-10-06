@@ -1,0 +1,117 @@
+Cloud images and uvtool
+Introduction
+With Ubuntu being one of the most used operating systems on many cloud platforms, the availability of stable and secure cloud images has become very important. As of 12.04 the utilization of cloud images outside of a cloud infrastructure has been improved. It is now possible to use those images to create a virtual machine without the need of a complete installation.
+
+Creating virtual machines using uvtool
+Starting with 14.04 LTS, a tool called uvtool greatly facilitates the task of generating virtual machines (VM) using the cloud images. uvtool provides a simple mechanism to synchronize cloud-images locally and use them to create new VMs in minutes.
+
+Uvtool packages
+The following packages and their dependencies will be required in order to use uvtool:
+
+uvtool
+
+uvtool-libvirt
+
+To install uvtool, run:
+
+$ sudo apt -y install uvtool
+This will install uvtool’s main commands:
+
+uvt-simplestreams-libvirt
+
+uvt-kvm
+
+Get the Ubuntu Cloud Image with uvt-simplestreams-libvirt
+This is one of the major simplifications that uvtool brings. It is aware of where to find the cloud images so only one command is required to get a new cloud image. For instance, if you want to synchronize all cloud images for the amd64 architecture, the uvtool command would be:
+
+$ uvt-simplestreams-libvirt --verbose sync arch=amd64
+After an amount of time required to download all the images from the Internet, you will have a complete set of cloud images stored locally. To see what has been downloaded use the following command:
+
+$ uvt-simplestreams-libvirt query
+release=bionic arch=amd64 label=daily (20191107)
+release=focal arch=amd64 label=daily (20191029)
+...
+In the case where you want to synchronize only one specific cloud-image, you need to use the release= and arch= filters to identify which image needs to be synchronized.
+
+$ uvt-simplestreams-libvirt sync release=DISTRO-SHORT-CODENAME arch=amd64
+Furthermore you can provide an alternative URL to fetch images from. A common case are the daily images which helps to get the very latest images or if you need access to the not yet released development release of Ubuntu.
+
+$ uvt-simplestreams-libvirt sync --source http://cloud-images.ubuntu.com/daily [... further options]
+Create the VM using uvt-kvm
+In order to connect to the virtual machine once it has been created, you must have a valid SSH key available for the Ubuntu user. If your environment does not have an SSH key, you can easily create one using the following command:
+
+$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/ubuntu/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/ubuntu/.ssh/id_rsa.
+Your public key has been saved in /home/ubuntu/.ssh/id_rsa.pub.
+The key fingerprint is:
+4d:ba:5d:57:c9:49:ef:b5:ab:71:14:56:6e:2b:ad:9b ubuntu@DISTRO-SHORT-CODENAMES
+The key's randomart image is:
++--[ RSA 2048]----+
+|               ..|
+|              o.=|
+|          .    **|
+|         +    o+=|
+|        S . ...=.|
+|         o . .+ .|
+|        . .  o o |
+|              *  |
+|             E   |
++-----------------+
+To create of a new virtual machine using uvtool, run the following in a terminal:
+
+$ uvt-kvm create firsttest
+This will create a VM named firsttest using the current LTS cloud image available locally. If you want to specify a release to be used to create the VM, you need to use the release= filter:
+
+$ uvt-kvm create secondtest release=DISTRO-SHORT-CODENAME
+uvt-kvm wait can be used to wait until the creation of the VM has completed:
+
+$ uvt-kvm wait secondttest
+Connect to the running VM
+Once the virtual machine creation is completed, you can connect to it using SSH:
+
+$ uvt-kvm ssh secondtest
+You can also connect to your VM using a regular SSH session using the IP address of the VM. The address can be queried using the following command:
+
+$ uvt-kvm ip secondtest
+192.168.122.199
+$ ssh -i ~/.ssh/id_rsa ubuntu@192.168.122.199
+[...]
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+ubuntu@secondtest:~$ 
+Get the list of running VMs
+You can get the list of VMs running on your system with this command:
+
+$ uvt-kvm list
+secondtest
+Destroy your VM
+Once you are done with your VM, you can destroy it with:
+
+$ uvt-kvm destroy secondtest
+Note: other than libvirts destroy action this will by default also remove the associated virtual storage files.
+
+More uvt-kvm options
+The following options can be used to change some of the characteristics of the VM that you are creating:
+
+–memory : Amount of RAM in megabytes. Default: 512.
+
+–disk : Size of the OS disk in gigabytes. Default: 8.
+
+–cpu : Number of CPU cores. Default: 1.
+
+Some other parameters will have an impact on the cloud-init configuration:
+
+–password password : Allow login to the VM using the Ubuntu account and this provided password.
+
+–run-script-once script_file : Run script_file as root on the VM the first time it is booted, but never again.
+
+–packages package_list : Install the comma-separated packages specified in package_list on first boot.
+
+A complete description of all available modifiers is available in the manpage of uvt-kvm.
+
+
