@@ -1,8 +1,52 @@
 # install podman podman-Desktop PostgreSQL on debian
 ## 1- install podman
-	sudo apt install -y podman
+	sudo apt install podman podman-compose
 
 	** Note: Debian 13 (Trixie) ships with Podman 5.4.x.  For rootless functionality, ensure uidmap, passt, and fuse-overlayfs are installed (sudo apt install uidmap passt fuse-overlayfs). 
+
+* To check if Podman has been successfully installed, you can run:
+
+  		podman version
+If there is no repository to fetch and install container Images by Podman, then we need to add that manually. We can use popular repositories such as Docker.io, Redhat, and Fedora.
+
+Modify the Registry configuration file by executing the following command:
+
+	nano /etc/containers/registries.conf
+If you want to add the following registries, Please navigate to the bottom of the document and insert the provided line.
+	
+	[registries.search]
+	registries = ['quay.io', 'docker.io']
+
+Once you’ve finished, save the file by pressing Ctrl+X, followed by the Y key, and exit by pressing Enter.
+
+You can employ Podman for creating and managing containers, along with other features. However, we won’t enumerate all of its capabilities in this context.
+
+Step 4. Using Podman
+Just like Docker, you can use almost the same commands to pull or run containers. To pull the alpine image for example, you can run:
+
+	podman pull docker.io/alpine
+
+You can also simply run podman pull alpine and select from which container registry to pull the image.
+
+Running an Nginx container with port mapping can be done with this command:
+
+	podman run -dit --name nginx -p 8080:80 docker.io/nginx
+
+This will run an Nginx container in the background, mapping port 80 from the container to port 8080 on our server.
+
+You can also check the containers that are currently running, or all containers that were also previously running with the commands:
+
+	podman ps 
+	podman ps -a 
+You can also create pods, for example. To create an empty pod, you can run this:
+
+	podman pod create --name web
+Now that the pod is created, we can add a container to it:
+
+	podman run -dt --pod web alpine:latest top
+To check the containers running inside a pod, you can now run:
+
+	podman ps --pod
 
 ## 2- Pull Postgesl Image
 	podman pull docker.io/library/postgres:16
