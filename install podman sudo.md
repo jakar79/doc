@@ -1,6 +1,8 @@
 1- install podman
 sudo apt install -y podman
 
+	** Note: Debian 13 (Trixie) ships with Podman 5.4.x.  For rootless functionality, ensure uidmap, passt, and fuse-overlayfs are installed (sudo apt install uidmap passt fuse-overlayfs). 
+
 2- Pull Postgesl Image
 podman pull docker.io/library/postgres:16
 
@@ -70,7 +72,15 @@ Connection tab:
 * Username: `admin`
 * Password: `admin@123`
 
-12- Useful Commands:
+12- Install Flatrpak
+	sudo apt install -y flatpak
+	flatpak remote-add --if-not-exists --user flathub https://flathub.org/repo/flathub.flatpakrepo   
+* Install Podman Desktop: Use Flatpak to install the desktop environment.
+	flatpak install -y --user flathub io.podman_desktop.PodmanDesktop   
+* Launch: Start the application using:
+  	flatpak run io.podman_desktop.PodmanDesktop   
+
+13- Useful Commands:
 
 Check running containers:
 podman ps
